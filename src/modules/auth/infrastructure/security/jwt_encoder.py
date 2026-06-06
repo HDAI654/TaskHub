@@ -12,7 +12,7 @@ class JWTEncoder:
         self.private_key = private_key or Config.JWT_PRIVATE_KEY
         self.algorithm = Config.JWT_ALGORITHM
 
-    def create_token(self, token_type: str, user_id: ID):
+    def create_token(self, token_type: str, user_id: ID, version: int = 0):
         try:
             if token_type == "refresh":
                 exp = datetime.now(timezone.utc) + timedelta(
@@ -24,7 +24,8 @@ class JWTEncoder:
                 )
             payload = {
                 "sub": user_id.value,
-                "jti": str(uuid.uuid4()),
+                "jti": ID().value,
+                "ver": version,
                 "exp": exp.timestamp(),
                 "type": token_type,
                 "iat": datetime.now(timezone.utc).timestamp(),
@@ -35,16 +36,16 @@ class JWTEncoder:
                 f"Unexpected error occurred during access-token generation:\n{str(e)}"
             )
 
-    def create_access_token(self, user_id: ID) -> str:
+    def create_access_token(self, user_id: ID, version: int = 0) -> str:
         """Create access token signed with private key"""
         return self.create_token(
-            token_type="access", user_id=user_id
+            token_type="access", user_id=user_id, version=version
         )
 
-    def create_refresh_token(self, user_id: ID) -> str:
+    def create_refresh_token(self, user_id: ID, version: int = 0) -> str:
         """Create refresh token signed with private key"""
         return self.create_token(
-            token_type="refresh", user_id=user_id
+            token_type="refresh", user_id=user_id, version=version
         )
 
     def should_rotate_refresh_token(self, token_expire_time: float) -> bool:

@@ -47,6 +47,29 @@ class UserDuplicateError(UserException):
 
     pass
 
+# ===== Cache Exceptions =====
+class CacheError(Exception):
+    """Base exception for all cache infrastructure failures"""
+
+    pass
+
+
+class CacheConnectionError(CacheError):
+    """Raised when cannot connect to cache"""
+
+    pass
+
+
+class CacheTimeoutError(CacheError):
+    """Raised when cache operation times out"""
+
+    pass
+
+
+class CacheOperationError(CacheError):
+    """Raised when cache operation fails"""
+
+    pass
 
 # ===== JWT Exceptions =====
 class TokenCreationError(InfrastructureError):

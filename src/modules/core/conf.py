@@ -30,8 +30,3 @@ class Config:
 
     # Cache
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
-    SESSION_TTL_SECONDS: int = REFRESH_TOKEN_EXPIRE_MINUTES * 60
-    SESSION_KEY_PREFIX: str = os.getenv("SESSION_KEY_PREFIX", "session:")
-    USER_SESSIONS_KEY_PREFIX: str = os.getenv(
-        "USER_SESSIONS_KEY_PREFIX", "user_sessions:"
-    )

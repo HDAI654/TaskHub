@@ -23,6 +23,7 @@ class TestJWTEncoder:
 
         assert payload["sub"] == user_id.value
         assert isinstance(payload["jti"], str)
+        assert payload["ver"] == 0
         assert payload["type"] == "access"
         assert payload["exp"] > datetime.now(timezone.utc).timestamp()
 
@@ -39,6 +40,7 @@ class TestJWTEncoder:
 
         assert payload["sub"] == user_id.value
         assert isinstance(payload["jti"], str)
+        assert payload["ver"] == 0
         assert payload["type"] == "refresh"
         assert payload["exp"] > datetime.now(timezone.utc).timestamp()
 
