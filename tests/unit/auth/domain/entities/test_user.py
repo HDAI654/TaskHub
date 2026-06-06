@@ -7,17 +7,17 @@ from src.modules.auth.domain.value_objects.password import HashedPassword
 class TestUserEntity:
     def test_eq_id(self):
         user = UserEntity(
-            id=ID("MyIDDDDDDDDDDDDDDDDDDD"),
+            id=ID("MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"),
             email=Email("MyExampleEmail@gmail.com"),
             hashed_password=HashedPassword("example_hashed_password"),
         )
         user2 = UserEntity(
-            id=ID("MyIDDDDDDDDDDDDDDDDDDD"),
+            id=ID("MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"),
             email=Email("MyEmail@gmail.com"),
             hashed_password=HashedPassword("example_hashed_password"),
         )
         user3 = UserEntity(
-            id=ID("MyDifferentIDDDDDDDDDD"),
+            id=ID("MyDifferentIDDDDDDDDDDDDDDDDDDDDDDDD"),
             email=Email("ExampleEmail@gmail.com"),
             hashed_password=HashedPassword("example_hashed_password"),
         )

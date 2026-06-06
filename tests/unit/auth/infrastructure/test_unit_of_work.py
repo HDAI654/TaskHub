@@ -1,0 +1,164 @@
+# tests/test_unit_of_work.py
+import pytest
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+from sqlalchemy.exc import (
+    OperationalError,
+    TimeoutError,
+    SQLAlchemyError,
+)
+from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import SQLAL_UnitOfWork
+from src.modules.auth.infrastructure.persistence.models import Base
+from src.modules.auth.domain.entities.user import UserEntity
+from src.modules.auth.domain.value_objects.id import ID
+from src.modules.auth.domain.value_objects.email import Email
+from src.modules.auth.domain.value_objects.password import HashedPassword
+from src.modules.auth.exceptions import (
+    DatabaseConnectionError,
+    DatabaseTimeoutError,
+    DatabaseOperationError
+)
+
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+
+engine = create_async_engine(
+    TEST_DATABASE_URL,
+    echo=False,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+
+TestingSessionLocal = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+
+class TestUnitOfWork:
+    @pytest.fixture(autouse=True)
+    async def setup_db(self):
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        yield
+        
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+
+    @pytest.fixture
+    async def db_session(self):
+        async with TestingSessionLocal() as session:
+            yield session
+
+    @pytest.fixture
+    async def uow(self, db_session):
+        return SQLAL_UnitOfWork(db_session)
+
+    @pytest.fixture
+    async def sample_user(self):
+        return UserEntity(
+            id=ID(),
+            email=Email("test@example.com"),
+            hashed_password=HashedPassword("hashed_password_123"),
+        )
+
+    async def test_commit_successfully(self, uow, sample_user):
+        await uow.users.add(sample_user)
+        await uow.commit()
+
+        # Verify user was actually saved
+        saved_user = await uow.users.get_by_email(sample_user.email)
+        assert saved_user.id.value == sample_user.id.value
+        assert saved_user.email.value == sample_user.email.value
+
+    '''async def test_commit_rollback_on_error(self, uow, sample_user, mocker):
+        
+        side_effects = [OperationalError, TimeoutError, SQLAlchemyError]
+        exceptions = [DatabaseConnectionError, DatabaseTimeoutError, DatabaseOperationError]
+        
+        async for side_effect, exception in zip(side_effects, exceptions):
+            # Add a user
+            await uow.users.add(sample_user)
+
+            mocker.patch.object(
+                uow._session, 
+                "commit", 
+                side_effect=side_effect()
+            )
+            
+            await uow.users.add(sample_user)
+            
+            with pytest.raises(exception):
+                await uow.commit()
+        
+            # Rollback should have been called
+            uow._session.rollback.assert_called_once()
+        
+
+        # Verify yhe user wasn't saved
+        assert await uow.users.exists_by_id(sample_user.id) is False'''
+
+    async def test_commit_with_no_changes(self, uow):
+        # Should not raise any error
+        await uow.commit()
+
+    async def test_rollback_discards_changes(self, uow, sample_user):
+        await uow.users.add(sample_user)
+        
+        # Rollback before commit
+        await uow.rollback()
+
+        # User should not exist in database
+        exists = await uow.users.exists_by_email(sample_user.email)
+        assert exists is False
+
+    async def test_multiple_operations_in_one_transaction(self, uow):
+        user1 = UserEntity(
+            id=ID(),
+            email=Email("user1@example.com"),
+            hashed_password=HashedPassword("pass1"),
+        )
+        user2 = UserEntity(
+            id=ID(),
+            email=Email("user2@example.com"),
+            hashed_password=HashedPassword("pass2"),
+        )
+
+        await uow.users.add(user1)
+        await uow.users.add(user2)
+        await uow.commit()
+
+        # Both should be saved
+        assert await uow.users.exists_by_email(user1.email) is True
+        assert await uow.users.exists_by_email(user2.email) is True
+
+    async def test_rollback_after_multiple_operations(self, uow):
+        user1 = UserEntity(
+            id=ID(),
+            email=Email("user1@example.com"),
+            hashed_password=HashedPassword("pass1"),
+        )
+        user2 = UserEntity(
+            id=ID(),
+            email=Email("user2@example.com"),
+            hashed_password=HashedPassword("pass2"),
+        )
+
+        await uow.users.add(user1)
+        await uow.users.add(user2)
+        await uow.rollback()
+
+        # Neither should be saved
+        assert await uow.users.exists_by_email(user1.email) is False
+        assert await uow.users.exists_by_email(user2.email) is False
+
+    async def test_commit_after_rollback(self, uow, sample_user):
+        await uow.users.add(sample_user)
+        await uow.rollback()
+
+        # Add again after rollback
+        await uow.users.add(sample_user)
+        await uow.commit()
+
+        assert await uow.users.exists_by_email(sample_user.email) is True

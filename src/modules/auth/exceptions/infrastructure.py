@@ -1,5 +1,53 @@
 from src.modules.core.exceptions import InfrastructureError
 
+# DB Exceptions
+class DatabaseError(InfrastructureError):
+    """Base exception for database errors"""
+
+    pass
+
+
+class DatabaseConnectionError(DatabaseError):
+    """Raised when cannot connect to database"""
+
+    pass
+
+
+class DatabaseTimeoutError(DatabaseError):
+    """Raised when database operation times out"""
+
+    pass
+
+
+class DatabaseOperationError(DatabaseError):
+    """Raised when database operation fails"""
+
+    pass
+
+class NoChangesError(InfrastructureError):
+    """No changes provided for update"""
+
+    pass
+
+
+class UserException(InfrastructureError):
+    """Base User error"""
+
+    pass
+
+
+class UserNotFoundError(UserException):
+    """User not found in database"""
+
+    pass
+
+
+class UserDuplicateError(UserException):
+    """User with same unique field exists"""
+
+    pass
+
+
 # ===== JWT Exceptions =====
 class TokenCreationError(InfrastructureError):
 

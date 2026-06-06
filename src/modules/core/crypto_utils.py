@@ -12,11 +12,7 @@ class IDGenerator:
     @staticmethod
     def generate() -> str:
         try:
-            u = uuid.uuid4()
-            ubytes = u.bytes
-            id = base64.urlsafe_b64encode(ubytes).decode("utf-8").rstrip("=")
-            return id
-
+            return str(uuid.uuid4())
         except Exception as e:
             raise IDGenerationError(
                 f"Unexpected error occurred during ID generation:\n{str(e)}"

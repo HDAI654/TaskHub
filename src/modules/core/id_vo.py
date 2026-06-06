@@ -11,7 +11,7 @@ class ID(BaseVO[str]):
             raise InvalidIDError("ID must be a non-empty string")
         if not value.isascii():
             raise InvalidIDError("ID must contain only ASCII characters")
-        if len(value) != 22:
+        if len(value) != 36:
             raise InvalidIDError("Invalid ID !")
 
         super().__init__(value)

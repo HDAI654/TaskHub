@@ -19,7 +19,7 @@ class TestID:
             ID("    ")
 
     def test_id_strip(self):
-        str_id = "        IDDDDDDDDDDDDDDDDDDDDD           "
+        str_id = "        IDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD           "
         id = ID(str_id)
 
         assert id.value == str_id.strip()
@@ -31,4 +31,4 @@ class TestID:
     def test_invalid_id(self):
         with pytest.raises(InvalidIDError):
             ID("A" * 15)
-            ID("A" * 25)
+            ID("A" * 40)
