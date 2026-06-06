@@ -1,0 +1,34 @@
+from src.modules.auth.domain.entities.user import UserEntity
+from src.modules.auth.domain.value_objects.id import ID
+from src.modules.auth.domain.value_objects.email import Email
+from src.modules.auth.domain.value_objects.password import HashedPassword
+
+
+class TestUserEntity:
+    def test_user_entity_with_null_password(self):
+        user = UserEntity(
+            id=ID("MyIDDDDDDDDDDDDDDDDDDD"),
+            email=Email("MyExampleEmail@gmail.com"),
+            password=None,
+        )
+        assert user.password is None
+
+    def test_eq_id(self):
+        user = UserEntity(
+            id=ID("MyIDDDDDDDDDDDDDDDDDDD"),
+            email=Email("MyExampleEmail@gmail.com"),
+            password=HashedPassword("example_hashed_password"),
+        )
+        user2 = UserEntity(
+            id=ID("MyIDDDDDDDDDDDDDDDDDDD"),
+            email=Email("MyEmail@gmail.com"),
+            password=HashedPassword("example_hashed_password"),
+        )
+        user3 = UserEntity(
+            id=ID("MyDifferentIDDDDDDDDDD"),
+            email=Email("ExampleEmail@gmail.com"),
+            password=HashedPassword("example_hashed_password"),
+        )
+
+        assert user == user2
+        assert user != user3 and user2 != user3
