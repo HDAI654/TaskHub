@@ -19,6 +19,8 @@ class TestJWTDecoder:
         )
         payload = {
             "sub": user_id.value,
+            "jti": ID().value,
+            "ver": 0,
             "exp": exp.timestamp(),
             "type": "access",
             "iat": datetime.now(timezone.utc).timestamp(),
@@ -39,6 +41,8 @@ class TestJWTDecoder:
         exp = datetime.now(timezone.utc) - timedelta(minutes=1)
         payload = {
             "sub": user_id.value,
+            "jti": ID().value,
+            "ver": 0,
             "exp": exp.timestamp(),
             "type": "access",
             "iat": datetime.now(timezone.utc).timestamp(),
@@ -55,6 +59,8 @@ class TestJWTDecoder:
         exp = datetime.now(timezone.utc) - timedelta(minutes=1)
         payload = {
             "sub": user_id.value,
+            "jti": ID().value,
+            "ver": 0,
             "exp": exp.timestamp(),
             "type": "access",
             "iat": datetime.now(timezone.utc).timestamp(),
@@ -72,13 +78,14 @@ class TestJWTDecoder:
 
     def test_decode_and_validate_success(self, decoder):
         user_id = ID()
-        session_id = ID()
+        jti = ID()
         exp = datetime.now(timezone.utc) + timedelta(
             minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES
         )
         payload = {
-            "sid": session_id.value,
             "sub": user_id.value,
+            "jti": jti.value,
+            "ver": 0,
             "exp": exp.timestamp(),
             "type": "access",
             "iat": datetime.now(timezone.utc).timestamp(),
@@ -89,8 +96,9 @@ class TestJWTDecoder:
 
         result = decoder.decode_and_validate(token)
 
-        assert result["sid"] == session_id.value
         assert result["sub"] == user_id.value
+        assert result["jti"] == jti.value
+        assert result["ver"] == 0
         assert result["type"] == "access"
         assert isinstance(result["exp"], (int, float))
         assert isinstance(result["iat"], (int, float))
@@ -115,10 +123,10 @@ class TestJWTDecoder:
 
     def test_decode_and_validate_exp_wrong_type(self, decoder):
         user_id = ID()
-        session_id = ID()
         payload = {
-            "sid": session_id.value,
             "sub": user_id.value,
+            "jti": ID().value,
+            "ver": 0,
             "exp": "not-a-number",
             "type": "access",
             "iat": datetime.now(timezone.utc).timestamp(),
@@ -132,15 +140,15 @@ class TestJWTDecoder:
 
     def test_decode_and_validate_type_wrong_type(self, decoder):
         user_id = ID()
-        session_id = ID()
         exp = datetime.now(timezone.utc) + timedelta(
             minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES
         )
         payload = {
-            "sid": session_id.value,
             "sub": user_id.value,
+            "jti": ID().value,
+            "ver": 0,
             "exp": exp.timestamp(),
-            "type": 12345,
+            "type": 158988,
             "iat": datetime.now(timezone.utc).timestamp(),
         }
         token = jwt.encode(
@@ -152,34 +160,34 @@ class TestJWTDecoder:
 
     def test_decode_and_validate_with_expected_type_matches(self, decoder):
         user_id = ID()
-        session_id = ID()
         exp = datetime.now(timezone.utc) + timedelta(
             minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES
         )
         payload = {
-            "sid": session_id.value,
             "sub": user_id.value,
+            "jti": ID().value,
+            "ver": 0,
             "exp": exp.timestamp(),
-            "type": "refresh",
+            "type": "access",
             "iat": datetime.now(timezone.utc).timestamp(),
         }
         token = jwt.encode(
             payload, Config.JWT_PRIVATE_KEY, algorithm=Config.JWT_ALGORITHM
         )
 
-        result = decoder.decode_and_validate(token, expected_type="refresh")
+        result = decoder.decode_and_validate(token, expected_type="access")
 
-        assert result["type"] == "refresh"
+        assert result["type"] == "access"
 
     def test_decode_and_validate_with_expected_type_mismatch(self, decoder):
         user_id = ID()
-        session_id = ID()
         exp = datetime.now(timezone.utc) + timedelta(
             minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES
         )
         payload = {
-            "sid": session_id.value,
             "sub": user_id.value,
+            "jti": ID().value,
+            "ver": 0,
             "exp": exp.timestamp(),
             "type": "access",
             "iat": datetime.now(timezone.utc).timestamp(),
