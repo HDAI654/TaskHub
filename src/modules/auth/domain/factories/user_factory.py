@@ -19,5 +19,5 @@ class UserFactory:
         return UserEntity(
             id=ID(id),
             email=Email(email),
-            password=HashedPassword(hashed_password),
+            hashed_password=HashedPassword(hashed_password),
         )

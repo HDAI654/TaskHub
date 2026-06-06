@@ -7,3 +7,10 @@ class InvalidHashedPasswordError(DomainError):
 
 class InvalidEmailError(DomainError):
     pass
+
+
+# ===== Password Checker Exceptions =====
+class WeakPasswordError(DomainError):
+    """Raised when password doesn't meet strength requirements"""
+
+    pass

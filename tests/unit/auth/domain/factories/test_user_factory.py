@@ -11,4 +11,4 @@ class TestUserFactory:
 
         assert user.id.value == "MyIDDDDDDDDDDDDDDDDDDD"
         assert user.email.value == "marshall@eminem.com"
-        assert user.password.value == "example_hashed_password"
+        assert user.hashed_password.value == "example_hashed_password"

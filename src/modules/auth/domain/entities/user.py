@@ -9,10 +9,10 @@ class UserEntity(Entity):
         self,
         id: ID,
         email: Email,
-        password: HashedPassword,
+        hashed_password: HashedPassword,
     ):
         self.id = id
         self.email = email
-        self.password = password
+        self.hashed_password = hashed_password
 
         super().__init__()
