@@ -7,7 +7,3 @@ class InvalidHashedPasswordError(DomainError):
 
 class InvalidEmailError(DomainError):
     pass
-
-
-class InvalidDateError(DomainError):
-    pass
