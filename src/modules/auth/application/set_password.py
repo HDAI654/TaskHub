@@ -87,8 +87,9 @@ class SetPassService:
         await self.token_repo.increment_user_version(user_id=user.id)
 
         # Generate access and refresh tokens
-        new_access_token = self.jwt_encoder.create_access_token(user.id)
-        new_refresh_token = self.jwt_encoder.create_refresh_token(user.id)
+        current_version = await self.token_repo.get_user_version(user_id=user.id)
+        new_access_token = self.jwt_encoder.create_access_token(user.id, version=current_version)
+        new_refresh_token = self.jwt_encoder.create_refresh_token(user.id, version=current_version)
 
         logger.info("User password changed successfully: public_id=%s", user.id)
 

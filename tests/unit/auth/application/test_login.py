@@ -1,4 +1,7 @@
 import pytest
+import fakeredis
+from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
+from src.modules.auth.infrastructure.cache.redis_token_repo import RedisTokenRepository
 from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import (
     SQLAL_UnitOfWork,
@@ -30,6 +33,18 @@ class TestLogin:
             yield session
             await session.rollback()
             break
+
+    @pytest.fixture
+    async def redis_client(self):
+        client = fakeredis.aioredis.FakeRedis(decode_responses=True)
+        yield client
+        await client.flushall()
+        await client.aclose()
+
+    @pytest.fixture
+    async def token_repo(self, redis_client) -> ITokenRepository:
+        return RedisTokenRepository(redis_client)
+
 
     @pytest.fixture
     async def uow(self, db_session) -> IUnitOfWork:
@@ -66,9 +81,10 @@ class TestLogin:
         return PasswordHasher()
 
     @pytest.fixture
-    async def service(self, uow, encoder, hasher):
+    async def service(self, uow, token_repo, encoder, hasher):
         return LoginService(
             uow=uow,
+            token_repo=token_repo,
             jwt_encoder=encoder,
             password_hasher=hasher,
         )

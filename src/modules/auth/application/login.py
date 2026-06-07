@@ -1,5 +1,6 @@
 import logging
 from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
+from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.auth.domain.value_objects.email import Email
 from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
 from src.modules.auth.infrastructure.security.password_hasher import PasswordHasher
@@ -12,10 +13,12 @@ class LoginService:
     def __init__(
         self,
         uow: IUnitOfWork,
+        token_repo: ITokenRepository,
         jwt_encoder: JWTEncoder,
         password_hasher: PasswordHasher,
     ):
         self.uow = uow
+        self.token_repo = token_repo
         self.jwt_encoder = jwt_encoder
         self.password_hasher = password_hasher
 
@@ -29,8 +32,9 @@ class LoginService:
             raise InvalidEmailOrPassword()
 
         # Generate access and refresh tokens
-        access_token = self.jwt_encoder.create_access_token(user.id)
-        refresh_token = self.jwt_encoder.create_refresh_token(user.id)
+        current_version = await self.token_repo.get_user_version(user_id=user.id)
+        access_token = self.jwt_encoder.create_access_token(user.id, current_version)
+        refresh_token = self.jwt_encoder.create_refresh_token(user.id, current_version)
 
         logger.info("User logged in successfully: email=%s", email)
 
