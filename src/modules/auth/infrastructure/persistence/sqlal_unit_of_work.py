@@ -28,7 +28,7 @@ class SQLAL_UnitOfWork(IUnitOfWork):
         self.users = SQLAL_UserRepository(session)
 
     async def commit(self) -> None:
-        logger.debug("Committing transaction")
+        logger.info("Committing transaction")
 
         try:
             await self._execute_db_operation(
@@ -36,7 +36,7 @@ class SQLAL_UnitOfWork(IUnitOfWork):
                 self._session.commit,
             )
 
-            logger.debug("Transaction committed successfully")
+            logger.info("Transaction committed successfully")
 
         except Exception:
             logger.warning("Transaction commit failed, rolling back")
@@ -48,14 +48,14 @@ class SQLAL_UnitOfWork(IUnitOfWork):
             raise
 
     async def rollback(self) -> None:
-        logger.debug("Rolling back transaction")
+        logger.info("Rolling back transaction")
 
         await self._execute_db_operation(
             "rollback",
             self._session.rollback,
         )
 
-        logger.debug("Transaction rolled back successfully")
+        logger.info("Transaction rolled back successfully")
 
     async def _execute_db_operation(self, operation: str, coro, *args, **kwargs):
         """Generic wrapper for database operations with error handling"""

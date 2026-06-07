@@ -33,11 +33,16 @@ class SQLAL_UserRepository(IUserRepository):
         self._session = session
 
     async def add(self, user: UserEntity) -> None:
-        logger.debug(
+        logger.info(
             "Adding user: public_id=%s, email=%s", user.id.value, user.email.value
         )
 
         if await self.exists_by_email(user.email):
+            logger.debug(
+                "User not found: public_id=%s, email=%s",
+                user.id.value,
+                user.email.value,
+            )
             raise UserDuplicateError(
                 f"Another user already uses this email: {user.email.value!r}"
             )
@@ -51,12 +56,12 @@ class SQLAL_UserRepository(IUserRepository):
         self._session.add(user_model)
         await self._execute_db_operation("add_user", self._session.flush)
 
-        logger.debug("User added successfully: public_id=%s", user.id.value)
+        logger.info("User added successfully: public_id=%s", user.id.value)
 
     async def update(
         self, id: ID, new_password: HashedPassword = None, new_email: Email = None
     ) -> None:
-        logger.debug(
+        logger.info(
             "Updating user: public_id=%s, new_password=%s, new_email=%s",
             id.value,
             new_password.value if new_password is not None else None,
@@ -70,9 +75,13 @@ class SQLAL_UserRepository(IUserRepository):
             update_data["email"] = new_email.value
 
         if not update_data:
+            logger.debug("No change to do")
             raise NoChangesError("No non-null changes provided.")
 
         if new_email is not None and await self.exists_by_email(new_email):
+            logger.debug(
+                "Another user already uses this email: new_email=%s", new_email.value
+            )
             raise UserDuplicateError(
                 f"Another user already uses this email: {new_email.value!r}"
             )
@@ -88,14 +97,15 @@ class SQLAL_UserRepository(IUserRepository):
 
         updated_id = result.scalar_one_or_none()
         if updated_id is None:
+            logger.debug("User not found: public_id=%s", id.value)
             raise UserNotFoundError(f"User with id {id.value!r} not found")
 
         await self._execute_db_operation("update_user", self._session.flush)
 
-        logger.debug("User updated successfully: public_id=%s", id.value)
+        logger.info("User updated successfully: public_id=%s", id.value)
 
     async def delete(self, id: ID) -> None:
-        logger.debug("Deleting user: public_id=%s", id.value)
+        logger.info("Deleting user: public_id=%s", id.value)
 
         result = await self._execute_db_operation(
             "delete_user",
@@ -104,6 +114,7 @@ class SQLAL_UserRepository(IUserRepository):
         )
 
         if result.rowcount == 0:
+            logger.debug("User not found: public_id=%s", id.value)
             raise UserNotFoundError(f"User with id {id.value!r} not found")
 
         await self._execute_db_operation(
@@ -111,10 +122,10 @@ class SQLAL_UserRepository(IUserRepository):
             self._session.flush,
         )
 
-        logger.debug("User deleted successfully: public_id=%s", id.value)
+        logger.info("User deleted successfully: public_id=%s", id.value)
 
     async def get_by_id(self, id: ID) -> UserEntity:
-        logger.debug("Start getting user: public_id=%s", id.value)
+        logger.info("Start getting user: public_id=%s", id.value)
 
         result = await self._execute_db_operation(
             "get_by_id",
@@ -124,7 +135,7 @@ class SQLAL_UserRepository(IUserRepository):
         user_row = result.scalar_one_or_none()
 
         if user_row:
-            logger.debug("User found: public_id=%s", id.value)
+            logger.info("User found: public_id=%s", id.value)
             return self._to_entity(user_row)
 
         logger.debug("User not found: public_id=%s", id.value)
@@ -132,7 +143,7 @@ class SQLAL_UserRepository(IUserRepository):
         raise UserNotFoundError(f"User with id {id.value!r} not found")
 
     async def get_by_email(self, email: Email) -> UserEntity:
-        logger.debug("Start getting user: email=%s", email.value)
+        logger.info("Start getting user: email=%s", email.value)
 
         result = await self._execute_db_operation(
             "get_by_email",
@@ -142,7 +153,7 @@ class SQLAL_UserRepository(IUserRepository):
         user_row = result.scalar_one_or_none()
 
         if user_row:
-            logger.debug("User found: email=%s", email.value)
+            logger.info("User found: email=%s", email.value)
             return self._to_entity(user_row)
 
         logger.debug("User not found: email=%s", email.value)

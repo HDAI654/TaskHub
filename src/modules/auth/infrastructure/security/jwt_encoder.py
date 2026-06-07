@@ -3,7 +3,9 @@ import jwt
 from src.modules.auth.exceptions import TokenCreationError
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.core.conf import Config
-import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class JWTEncoder:
@@ -13,6 +15,7 @@ class JWTEncoder:
         self.algorithm = Config.JWT_ALGORITHM
 
     def create_token(self, token_type: str, user_id: ID, version: int = 0):
+        logger.info("Creating %s-token", token_type)
         try:
             if token_type == "refresh":
                 exp = datetime.now(timezone.utc) + timedelta(
@@ -30,11 +33,15 @@ class JWTEncoder:
                 "type": token_type,
                 "iat": datetime.now(timezone.utc).timestamp(),
             }
+            logger.info("%s-token created successfully", token_type)
             return jwt.encode(payload, self.private_key, algorithm=self.algorithm)
         except Exception as e:
-            raise TokenCreationError(
-                f"Unexpected error occurred during access-token generation:\n{str(e)}"
+            logger.exception(
+                "Unexpected error occurred during %s-token generation", token_type
             )
+            raise TokenCreationError(
+                f"Unexpected error occurred during {token_type}-token generation:\n{str(e)}"
+            ) from e
 
     def create_access_token(self, user_id: ID, version: int = 0) -> str:
         """Create access token signed with private key"""
@@ -45,9 +52,19 @@ class JWTEncoder:
         return self.create_token(token_type="refresh", user_id=user_id, version=version)
 
     def should_rotate_refresh_token(self, token_expire_time: float) -> bool:
-        rotate_threshold = timedelta(minutes=Config.ROTATE_THRESHOLD_MINUTES)
+        logger.info("Checking refresh-token rotation")
+        try:
+            rotate_threshold = timedelta(minutes=Config.ROTATE_THRESHOLD_MINUTES)
 
-        exp = datetime.fromtimestamp(token_expire_time, timezone.utc)
-        now = datetime.now(timezone.utc)
-
-        return exp - now <= rotate_threshold
+            exp = datetime.fromtimestamp(token_expire_time, timezone.utc)
+            now = datetime.now(timezone.utc)
+            need = exp - now <= rotate_threshold
+            logger.info("Refresh token rotation checked: rotation need=%s", need)
+            return need
+        except Exception as e:
+            logger.exception(
+                "Unexpected error occurred during check refresh-token rotation"
+            )
+            raise TokenCreationError(
+                f"Unexpected error occurred during check refresh-token rotation:\n{str(e)}"
+            ) from e

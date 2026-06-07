@@ -7,6 +7,12 @@ class InvalidEmailOrPassword(ApplicationError):
     pass
 
 
+class InvalidOldPassword(ApplicationError):
+    """Raised when old-password is invalid"""
+
+    pass
+
+
 class PermissionDenied(ApplicationError):
     """Raised when user lacks permission to perform the requested action"""
 

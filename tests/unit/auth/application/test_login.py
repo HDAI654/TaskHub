@@ -1,6 +1,8 @@
 import pytest
 from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
-from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import SQLAL_UnitOfWork
+from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import (
+    SQLAL_UnitOfWork,
+)
 from src.modules.auth.infrastructure.persistence.models import Base
 from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
 from src.modules.auth.infrastructure.security.password_hasher import PasswordHasher
@@ -10,6 +12,7 @@ from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.auth.domain.factories.user_factory import UserFactory
 from src.modules.auth.exceptions import InvalidEmailOrPassword
+
 
 class TestLogin:
     @pytest.fixture(autouse=True)
@@ -70,9 +73,7 @@ class TestLogin:
             password_hasher=hasher,
         )
 
-    async def test_login_success(
-        self, user, service, user_raw_password, decoder, uow
-        ):
+    async def test_login_success(self, user, service, user_raw_password, decoder, uow):
         access_token, refresh_token = await service.execute(
             email=user.email.value,
             password=user_raw_password,
@@ -81,10 +82,8 @@ class TestLogin:
 
         payload = decoder.decode_token(access_token)
         assert await uow.users.exists_by_id(ID(payload["sub"])) == True
-    
-    async def test_login_with_invalid_password(
-        self, user, service
-        ):
+
+    async def test_login_with_invalid_password(self, user, service):
         with pytest.raises(InvalidEmailOrPassword):
             access_token, refresh_token = await service.execute(
                 email=user.email.value,

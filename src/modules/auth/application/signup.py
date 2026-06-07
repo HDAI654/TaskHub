@@ -44,5 +44,5 @@ class SignupService:
         refresh_token = self.jwt_encoder.create_refresh_token(user.id)
 
         logger.info("User signed up successfully: email=%s", email)
-        
+
         return access_token, refresh_token
