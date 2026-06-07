@@ -13,7 +13,7 @@ from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
 from src.modules.auth.infrastructure.security.password_hasher import PasswordHasher
 from src.modules.auth.domain.factories.user_factory import UserFactory
-from src.modules.auth.exceptions import InvalidOldPassword
+from src.modules.auth.exceptions import InvalidOldPassword, InvalidToken
 
 
 class TestSetPass:
@@ -123,5 +123,16 @@ class TestSetPass:
             await service.execute(
                 access_token=user_access_token,
                 old_password="invalid_old_password:)",
+                new_password="NewSuper25@Secret",
+            )
+    
+    async def test_set_pass_with_invalid_version(
+        self, service, user, encoder, user_raw_password
+    ):
+        access_token = encoder.create_access_token(user_id=user.id, version=100)
+        with pytest.raises(InvalidToken):
+            await service.execute(
+                access_token=access_token,
+                old_password=user_raw_password,
                 new_password="NewSuper25@Secret",
             )

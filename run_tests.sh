@@ -12,6 +12,6 @@ if [ -n "$1" ]; then
 fi
 
 # Run pytest
-pytest -v
+python -m pytest -v
 
 echo "========== CI: Tests finished =========="

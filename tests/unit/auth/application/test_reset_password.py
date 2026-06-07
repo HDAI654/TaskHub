@@ -1,28 +1,25 @@
 import pytest
 import fakeredis
-from uuid import uuid4
-from datetime import datetime, timedelta, timezone
-import jwt
-import fakeredis
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.auth.infrastructure.cache.redis_token_repo import RedisTokenRepository
 from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import (
     SQLAL_UnitOfWork,
 )
+from src.modules.auth.domain.ports.password_reset_repo_interface import IPasswordResetRepository
+from src.modules.auth.infrastructure.cache.redis_password_reset_repo import RedisPasswordResetRepository
 from src.modules.auth.infrastructure.persistence.models import Base
-from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
-from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.core.database import get_async_session, engine
-from src.modules.auth.application.token_rotation import TokenRotationService
-from src.modules.auth.domain.factories.user_factory import UserFactory
+from src.modules.auth.application.reset_password import ResetPassService
+from src.modules.core.jwt_decoder import JWTDecoder
+from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
 from src.modules.auth.infrastructure.security.password_hasher import PasswordHasher
-from src.modules.core.conf import Config
-from src.modules.auth.exceptions import (
-    InvalidToken
-)
+from src.modules.auth.domain.factories.user_factory import UserFactory
+from src.modules.auth.exceptions import InvalidOldPassword, InvalidToken
+from src.modules.core.crypto_utils import IDGenerator
 
-class TestTokenRotation:
+
+class TestResPass:
     @pytest.fixture(autouse=True)
     async def setup_db(self):
         async with engine.begin() as conn:
@@ -77,60 +74,71 @@ class TestTokenRotation:
         return RedisTokenRepository(redis_client)
     
     @pytest.fixture
-    async def encoder(self):
-        return JWTEncoder()
+    async def res_pass_repo(self, redis_client) -> IPasswordResetRepository:
+        return RedisPasswordResetRepository(redis_client)
 
     @pytest.fixture
     async def decoder(self):
         return JWTDecoder()
 
     @pytest.fixture
-    async def user_refresh_token(self, encoder, user):
-        return encoder.create_refresh_token(user_id=user.id)
+    async def encoder(self):
+        return JWTEncoder()
 
     @pytest.fixture
-    async def service(self, uow, token_repo, decoder, encoder):
-        return TokenRotationService(
+    async def user_access_token(self, user, encoder):
+        return encoder.create_access_token(user_id=user.id)
+    
+    @pytest.fixture
+    async def res_token(self, user, res_pass_repo):
+        token = IDGenerator.generate()
+        await res_pass_repo.add(user_id=user.id, token=token)
+        return token
+
+
+    @pytest.fixture
+    async def service(self, uow, res_pass_repo, token_repo, decoder, encoder, hasher):
+        return ResetPassService(
             uow=uow,
+            res_pass_repo=res_pass_repo,
             token_repo=token_repo,
             jwt_decoder=decoder,
-            jwt_encoder=encoder
+            jwt_encoder=encoder,
+            password_hasher=hasher,
         )
 
-    async def test_rotation_success(self, service, user_refresh_token):
-        new_access_token, new_refresh_token = await service.execute(
-            refresh_token=user_refresh_token,
-        )
-        assert isinstance(new_access_token, str) and new_refresh_token is None
-
-    async def test_rotation_success_with_new_refresh_token(
-        self, service, user
+    async def test_set_pass_success(
+        self,
+        user,
+        user_access_token,
+        service:ResetPassService,
+        uow,
+        hasher,
+        token_repo,
+        res_token,
     ):
-        exp = datetime.now(timezone.utc) + timedelta(
-            minutes=Config.ROTATE_THRESHOLD_MINUTES
-        )
-        payload = {
-            "sub": user.id.value,
-            "jti": str(uuid4()),
-            "ver": 0,
-            "exp": exp,
-            "type": "refresh",
-            "iat": datetime.now(timezone.utc).timestamp(),
-        }
-        refresh_token = jwt.encode(
-            payload, Config.JWT_PRIVATE_KEY, algorithm=Config.JWT_ALGORITHM
-        )
         new_access_token, new_refresh_token = await service.execute(
-            refresh_token=refresh_token,
+            access_token=user_access_token,
+            token=res_token,
+            new_password="NewSuper25@Secret",
         )
         assert isinstance(new_access_token, str) and isinstance(new_refresh_token, str)
-    
 
-    async def test_rotation_with_invalid_version(
-        self, service, user, encoder
+        user = await uow.users.get_by_id(user.id)
+        assert hasher.verify(
+            plain="NewSuper25@Secret", hashed=user.hashed_password.value
+        )
+
+        # Password change should change user version
+        assert await token_repo.get_user_version(user.id) == 1
+    
+    async def test_set_pass_with_invalid_version(
+        self, service, user, encoder, res_token,
     ):
-        refresh_token = encoder.create_refresh_token(user_id=user.id, version=100)
+        access_token = encoder.create_access_token(user_id=user.id, version=100)
         with pytest.raises(InvalidToken):
             await service.execute(
-                refresh_token=refresh_token,
+                access_token=access_token,
+                token=res_token,
+                new_password="NewSuper25@Secret",
             )

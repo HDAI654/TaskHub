@@ -95,17 +95,17 @@ class TestTokenRepo:
         assert await token_repo.get_user_version(user1) == 2
         assert await token_repo.get_user_version(user2) == 1
 
-    """async def test_error_handling(self, token_repo, user_id, mocker):
+    async def test_error_handling(self, token_repo, user_id, mocker):
         
         side_effects = [ConnectionError, TimeoutError, RedisError]
         exceptions = [CacheConnectionError, CacheTimeoutError, CacheOperationError]
         
-        async for side_effect, exception in zip(side_effects, exceptions):
+        for side_effect, exception in zip(side_effects, exceptions):
             mocker.patch.object(
-                token_repo._client.incr, 
-                "incr", 
+                token_repo._client,
+                "incr",       
                 side_effect=side_effect()
             )
             
             with pytest.raises(exception):
-                await token_repo.increment_user_version(user_id)"""
+                await token_repo.increment_user_version(user_id)

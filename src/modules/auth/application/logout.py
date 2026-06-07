@@ -22,21 +22,13 @@ class LogoutService:
     async def execute(self, access_token: str, refresh_token: str):
         logger.info("Logging out user")
         # Decode and validate access token and refresh token
-        try:
-            access_payload = self.jwt_decoder.decode_and_validate(
-                access_token, "access"
-            )
-        except InvalidToken as e:
-            logger.warning("access_token was invalid: %s", str(e))
-            raise
-        try:
-            refresh_payload = self.jwt_decoder.decode_and_validate(
-                refresh_token, "refresh"
-            )
-        except InvalidToken as e:
-            logger.warning("refresh_token was invalid: %s", str(e))
-            raise
-
+        access_payload = self.jwt_decoder.decode_and_validate(
+            access_token, "access"
+        )
+        refresh_payload = self.jwt_decoder.decode_and_validate(
+            refresh_token, "refresh"
+        )
+        
         if access_payload["sub"] != refresh_payload["sub"]:
             logger.warning(
                 "Token user mismatch detected: access_token refers to user_id=%s, refresh_token refers to user_id=%s",
@@ -49,12 +41,19 @@ class LogoutService:
 
         # check user does exist
         try:
-            await self.uow.users.get_by_id(ID(access_payload["sub"]))
+            user = await self.uow.users.get_by_id(ID(access_payload["sub"]))
         except UserNotFoundError:
             logger.warning(
                 "Logout failed: user_id=%s not found in database", access_payload["sub"]
             )
             raise
+            
+        # check version of token
+        current_version = await self.token_repo.get_user_version(user_id=user.id)
+        if access_payload["ver"] != current_version:
+            raise InvalidToken("Access token is expired")
+        if refresh_payload["ver"] != current_version:
+            raise InvalidToken("Refresh token is expired")
 
         # Add tokens to blacklist
         await self.token_repo.block_token(

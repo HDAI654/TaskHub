@@ -1,11 +1,12 @@
 from src.modules.auth.exceptions import (
     InvalidToken,
-    InvalidOldPassword,
-    WeakPasswordError,
     UserNotFoundError,
+    PermissionDenied,
+    WeakPasswordError
 )
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
+from src.modules.auth.domain.ports.password_reset_repo_interface import IPasswordResetRepository
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.auth.domain.value_objects.password import HashedPassword
 from src.modules.core.jwt_decoder import JWTDecoder
@@ -19,29 +20,45 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class SetPassService:
+class ResetPassService:
     def __init__(
         self,
         uow: IUnitOfWork,
+        res_pass_repo: IPasswordResetRepository,
         token_repo: ITokenRepository,
         jwt_decoder: JWTDecoder,
         jwt_encoder: JWTEncoder,
         password_hasher: PasswordHasher,
     ):
         self.uow = uow
+        self.res_pass_repo = res_pass_repo
         self.token_repo = token_repo
         self.jwt_decoder = jwt_decoder
         self.jwt_encoder = jwt_encoder
         self.password_hasher = password_hasher
 
-    async def execute(self, access_token: str, old_password: str, new_password: str):
-        logging.info("Changing user password")
+    async def execute(self, access_token: str, token:str, new_password: str):
+        logging.info("Changing user password (Reset)")
 
         # Decode and validate access token
         try:
             payload = self.jwt_decoder.decode_and_validate(access_token, "access")
         except InvalidToken as e:
             logger.warning("access_token was invalid: %s", str(e))
+            raise
+        
+        # check token
+        tkn = await self.res_pass_repo.get(token)
+        if tkn is None:
+            raise PermissionDenied("Expired token")
+        else:
+            await self.res_pass_repo.delete(token) 
+
+        # Validate new password strength
+        try:
+            PasswordStrengthChecker.validate(new_password)
+        except WeakPasswordError:
+            logger.debug("The new-password was weak")
             raise
 
         # Retrieve user and session entities
@@ -58,23 +75,6 @@ class SetPassService:
         current_version = await self.token_repo.get_user_version(user_id=user.id)
         if payload["ver"] != current_version:
             raise InvalidToken("Token is expired")
-
-        # check the old password
-        if (
-            self.password_hasher.verify(
-                plain=old_password, hashed=user.hashed_password.value
-            )
-            is False
-        ):
-            logger.debug("User entered an incorrect password")
-            raise InvalidOldPassword()
-
-        # Validate new password strength
-        try:
-            PasswordStrengthChecker.validate(new_password)
-        except WeakPasswordError:
-            logger.debug("The new-password was weak")
-            raise
 
         # Hash the new password
         hashed_password = self.password_hasher.hash(new_password)
