@@ -11,6 +11,7 @@ from src.modules.auth.exceptions import (
     DatabaseError,
     CacheError,
 )
+from src.modules.core.rate_limiter import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class SetPasswordResponse(BaseModel):
 
 
 @router.post("/set-password", response_model=SetPasswordResponse)
+@rate_limit(max_requests=5, window="min", key_prefix="set_password")
 async def set_password(
     request: SetPasswordRequest,
     service: SetPassService = Depends(get_set_password_service),

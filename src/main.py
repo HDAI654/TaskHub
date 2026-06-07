@@ -14,8 +14,9 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(AuthBase.metadata.create_all)
+    if Config.APP_ENV == "development":
+        async with engine.begin() as conn:
+            await conn.run_sync(AuthBase.metadata.create_all)
     yield
     await close_redis_client()
 

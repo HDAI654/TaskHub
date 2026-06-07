@@ -12,6 +12,7 @@ from src.modules.auth.exceptions import (
     DatabaseError,
     CacheError,
 )
+from src.modules.core.rate_limiter import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class ResetPasswordResponse(BaseModel):
 
 
 @router.post("/reset-password", response_model=ResetPasswordResponse)
+@rate_limit(max_requests=5, window="min", key_prefix="reset_pass")
 async def reset_password(
     request: ResetPasswordRequest,
     service: ResetPassService = Depends(get_reset_password_service),

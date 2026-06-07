@@ -9,6 +9,7 @@ from src.modules.auth.exceptions import (
     DatabaseError,
     CacheError,
 )
+from src.modules.core.rate_limiter import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class LogoutResponse(BaseModel):
 
 
 @router.post("/logout", response_model=LogoutResponse)
+@rate_limit(max_requests=30, window="min", key_prefix="logout")
 async def logout(
     request: LogoutRequest,
     service: LogoutService = Depends(get_logout_service),

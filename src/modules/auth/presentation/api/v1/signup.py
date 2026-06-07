@@ -8,6 +8,7 @@ from src.modules.auth.exceptions import (
     InvalidEmailError,
     DatabaseError,
 )
+from src.modules.core.rate_limiter import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ class RegisterResponse(BaseModel):
 @router.post(
     "/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED
 )
+@rate_limit(max_requests=5, window="min", key_prefix="register")
 async def register(
     request: RegisterRequest,
     service: SignupService = Depends(get_signup_service),

@@ -10,6 +10,7 @@ from src.modules.auth.exceptions import (
     DatabaseError,
     CacheError,
 )
+from src.modules.core.rate_limiter import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class RefreshTokenResponse(BaseModel):
 
 
 @router.post("/refresh", response_model=RefreshTokenResponse)
+@rate_limit(max_requests=20, window="min", key_prefix="refresh")
 async def refresh_token(
     request: RefreshTokenRequest,
     service: TokenRotationService = Depends(get_token_rotation_service),

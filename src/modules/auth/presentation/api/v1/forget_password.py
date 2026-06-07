@@ -13,6 +13,7 @@ from src.modules.auth.exceptions import (
     DatabaseError,
     CacheError,
 )
+from src.modules.core.rate_limiter import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ class ForgetPasswordResponse(BaseModel):
 
 
 @router.post("/forget-pass", response_model=ForgetPasswordResponse)
+@rate_limit(max_requests=3, window="min", key_prefix="forget_pass")
 async def publish_reset_token(
     request: ForgetPasswordRequest,
     service: ResetPassTokenPublishService = Depends(get_reset_password_publish_service),

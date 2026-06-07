@@ -9,6 +9,7 @@ from src.modules.auth.exceptions import (
     DatabaseError,
     CacheError,
 )
+from src.modules.core.rate_limiter import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class LoginResponse(BaseModel):
 
 
 @router.post("/login", response_model=LoginResponse)
+@rate_limit(max_requests=10, window="min", key_prefix="login")
 async def login(
     request: LoginRequest,
     service: LoginService = Depends(get_login_service),
