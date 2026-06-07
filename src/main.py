@@ -6,6 +6,7 @@ from src.modules.auth.infrastructure.persistence.models import Base as AuthBase
 from src.modules.core.redis_client import close_redis_client
 import logging
 from src.modules.core.conf import Config
+from src.modules.auth.presentation.api.v1.router import router as router_v1_auth
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -31,4 +32,4 @@ async def read_root():
     return {"message": f"Welcome to {Config.APP_NAME}"}
 
 
-# app.include_router(router_v1_auth)
+app.include_router(router_v1_auth)
