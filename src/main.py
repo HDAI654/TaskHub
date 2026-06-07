@@ -31,4 +31,4 @@ async def read_root():
     return {"message": f"Welcome to {Config.APP_NAME}"}
 
 
-#app.include_router(router_v1_auth)
+# app.include_router(router_v1_auth)

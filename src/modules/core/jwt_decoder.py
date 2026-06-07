@@ -32,22 +32,34 @@ class JWTDecoder:
 
         # Validate types
         if not isinstance(payload["sub"], str):
-            raise InvalidToken(f"Token has invalid 'sub' claim: must be string, got {type(payload["sub"]).__name__}")
-        
+            raise InvalidToken(
+                f"Token has invalid 'sub' claim: must be string, got {type(payload["sub"]).__name__}"
+            )
+
         if not isinstance(payload["jti"], str):
-            raise InvalidToken(f"Token has invalid 'jti' claim: must be string, got {type(payload["jti"]).__name__}")
-        
+            raise InvalidToken(
+                f"Token has invalid 'jti' claim: must be string, got {type(payload["jti"]).__name__}"
+            )
+
         if not isinstance(payload["ver"], int):
-            raise InvalidToken(f"Token has invalid 'ver' claim: must be integer, got {type(payload["ver"]).__name__}")
-        
+            raise InvalidToken(
+                f"Token has invalid 'ver' claim: must be integer, got {type(payload["ver"]).__name__}"
+            )
+
         if not isinstance(payload["exp"], (int, float)):
-            raise InvalidToken(f"Token has invalid 'exp' claim: must be numeric, got {type(payload["exp"]).__name__}")
-        
+            raise InvalidToken(
+                f"Token has invalid 'exp' claim: must be numeric, got {type(payload["exp"]).__name__}"
+            )
+
         if not isinstance(payload["type"], str):
-            raise InvalidToken(f"Token has invalid 'type' claim: must be string, got {type(payload["type"]).__name__}")
-        
+            raise InvalidToken(
+                f"Token has invalid 'type' claim: must be string, got {type(payload["type"]).__name__}"
+            )
+
         if not isinstance(payload["iat"], (int, float)):
-            raise InvalidToken(f"Token has invalid 'iat' claim: must be numeric, got {type(payload["iat"]).__name__}")
+            raise InvalidToken(
+                f"Token has invalid 'iat' claim: must be numeric, got {type(payload["iat"]).__name__}"
+            )
 
         # Check token type
         if expected_type and payload["type"] != expected_type:

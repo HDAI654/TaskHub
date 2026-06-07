@@ -38,15 +38,11 @@ class JWTEncoder:
 
     def create_access_token(self, user_id: ID, version: int = 0) -> str:
         """Create access token signed with private key"""
-        return self.create_token(
-            token_type="access", user_id=user_id, version=version
-        )
+        return self.create_token(token_type="access", user_id=user_id, version=version)
 
     def create_refresh_token(self, user_id: ID, version: int = 0) -> str:
         """Create refresh token signed with private key"""
-        return self.create_token(
-            token_type="refresh", user_id=user_id, version=version
-        )
+        return self.create_token(token_type="refresh", user_id=user_id, version=version)
 
     def should_rotate_refresh_token(self, token_expire_time: float) -> bool:
         rotate_threshold = timedelta(minutes=Config.ROTATE_THRESHOLD_MINUTES)

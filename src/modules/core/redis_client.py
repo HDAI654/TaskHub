@@ -8,6 +8,7 @@ def get_redis_client() -> Redis:
     """Get async Redis client singleton"""
     if Config.APP_ENV == "development":
         import fakeredis
+
         return fakeredis.aioredis.FakeRedis(decode_responses=True)
     else:
         redis_url = Config.REDIS_URL

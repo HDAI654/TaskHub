@@ -1,5 +1,6 @@
 from src.modules.core.exceptions import InfrastructureError
 
+
 # DB Exceptions
 class DatabaseError(InfrastructureError):
     """Base exception for database errors"""
@@ -24,6 +25,7 @@ class DatabaseOperationError(DatabaseError):
 
     pass
 
+
 class NoChangesError(InfrastructureError):
     """No changes provided for update"""
 
@@ -46,6 +48,7 @@ class UserDuplicateError(UserException):
     """User with same unique field exists"""
 
     pass
+
 
 # ===== Cache Exceptions =====
 class CacheError(Exception):
@@ -70,6 +73,7 @@ class CacheOperationError(CacheError):
     """Raised when cache operation fails"""
 
     pass
+
 
 # ===== JWT Exceptions =====
 class TokenCreationError(InfrastructureError):

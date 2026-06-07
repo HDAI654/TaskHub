@@ -7,6 +7,7 @@ from src.modules.auth.exceptions import InvalidEmailOrPassword
 
 logger = logging.getLogger(__name__)
 
+
 class LoginService:
     def __init__(
         self,
@@ -18,7 +19,7 @@ class LoginService:
         self.jwt_encoder = jwt_encoder
         self.password_hasher = password_hasher
 
-    async def execute(self, email: str, password: str):
+    async def execute(self, email: str, password: str) -> tuple[str, str]:
         logger.info("Logging in user: email=%s", email)
         # Retrieve user by email
         user = await self.uow.users.get_by_email(email=Email(email))

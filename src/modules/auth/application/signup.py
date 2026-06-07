@@ -9,6 +9,7 @@ from src.modules.auth.domain.password_strength_checker import (
 
 logger = logging.getLogger(__name__)
 
+
 class SignupService:
     def __init__(
         self,
@@ -20,7 +21,7 @@ class SignupService:
         self.jwt_encoder = jwt_encoder
         self.password_hasher = password_hasher
 
-    async def execute(self, email: str, password: str):
+    async def execute(self, email: str, password: str) -> tuple[str, str]:
         logger.info("Signing up user: email=%s", email)
         # Validate new password strength
         PasswordStrengthChecker.validate(password=password)
@@ -35,7 +36,7 @@ class SignupService:
         except Exception:
             await self.uow.rollback()
             logger.error("Adding user to DB failed: email=%s", email)
-            raise    
+            raise
         await self.uow.commit()
 
         # Generate access and refresh tokens
@@ -43,5 +44,5 @@ class SignupService:
         refresh_token = self.jwt_encoder.create_refresh_token(user.id)
 
         logger.info("User signed up successfully: email=%s", email)
-
+        
         return access_token, refresh_token

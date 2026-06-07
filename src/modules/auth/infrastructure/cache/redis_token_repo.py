@@ -24,13 +24,15 @@ class RedisTokenRepository(ITokenRepository):
         Add a token to blacklist.
         """
         key = f"blacklist:{token_id.value}"
-        
+
         now = datetime.now(timezone.utc)
         expiry = datetime.fromtimestamp(expires_at, tz=timezone.utc)
         ttl_seconds = int((expiry - now).total_seconds())
-        
+
         if ttl_seconds > 0:
-            await self._execute_redis_operation("setex", self._client.setex, key, ttl_seconds, "revoked")
+            await self._execute_redis_operation(
+                "setex", self._client.setex, key, ttl_seconds, "revoked"
+            )
             logger.debug(f"Token blocked: {token_id.value}, TTL: {ttl_seconds}s")
         else:
             logger.debug(f"Token already expired, no need to block: {token_id.value}")
@@ -38,27 +40,34 @@ class RedisTokenRepository(ITokenRepository):
     async def is_token_blocked(self, token_id: ID) -> bool:
         """Check if a token is in blacklist."""
         key = f"blacklist:{token_id.value}"
-        exists = await self._execute_redis_operation("check_exists", self._client.exists, key)
+        exists = await self._execute_redis_operation(
+            "check_exists", self._client.exists, key
+        )
         logger.debug(f"Token check: {token_id.value}, blocked={bool(exists)}")
         return exists == 1
 
     async def get_user_version(self, user_id: ID) -> int:
         """Get current token version for a user."""
         key = f"token_version:{user_id.value}"
-        version = await self._execute_redis_operation("get_version", self._client.get, key)
-        
+        version = await self._execute_redis_operation(
+            "get_version", self._client.get, key
+        )
+
         if version is None:
             return 0
-        
+
         return int(version)
 
     async def increment_user_version(self, user_id: ID) -> int:
         """Increment user's token version (invalidates all previous tokens)."""
         key = f"token_version:{user_id.value}"
-        new_version = await self._execute_redis_operation("increment_version", self._client.incr, key)
-        logger.info(f"User version incremented: user_id={user_id.value}, new_version={new_version}")
+        new_version = await self._execute_redis_operation(
+            "increment_version", self._client.incr, key
+        )
+        logger.info(
+            f"User version incremented: user_id={user_id.value}, new_version={new_version}"
+        )
         return new_version
-    
 
     async def _execute_redis_operation(self, operation: str, coro, *args, **kwargs):
         """Generic wrapper for Redis operations with error handling"""

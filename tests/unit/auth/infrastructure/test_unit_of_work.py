@@ -8,7 +8,9 @@ from sqlalchemy.exc import (
     TimeoutError,
     SQLAlchemyError,
 )
-from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import SQLAL_UnitOfWork
+from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import (
+    SQLAL_UnitOfWork,
+)
 from src.modules.auth.infrastructure.persistence.models import Base
 from src.modules.auth.domain.entities.user import UserEntity
 from src.modules.auth.domain.value_objects.id import ID
@@ -17,7 +19,7 @@ from src.modules.auth.domain.value_objects.password import HashedPassword
 from src.modules.auth.exceptions import (
     DatabaseConnectionError,
     DatabaseTimeoutError,
-    DatabaseOperationError
+    DatabaseOperationError,
 )
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -42,7 +44,7 @@ class TestUnitOfWork:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         yield
-        
+
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
 
@@ -72,7 +74,7 @@ class TestUnitOfWork:
         assert saved_user.id.value == sample_user.id.value
         assert saved_user.email.value == sample_user.email.value
 
-    '''async def test_commit_rollback_on_error(self, uow, sample_user, mocker):
+    """async def test_commit_rollback_on_error(self, uow, sample_user, mocker):
         
         side_effects = [OperationalError, TimeoutError, SQLAlchemyError]
         exceptions = [DatabaseConnectionError, DatabaseTimeoutError, DatabaseOperationError]
@@ -97,7 +99,7 @@ class TestUnitOfWork:
         
 
         # Verify yhe user wasn't saved
-        assert await uow.users.exists_by_id(sample_user.id) is False'''
+        assert await uow.users.exists_by_id(sample_user.id) is False"""
 
     async def test_commit_with_no_changes(self, uow):
         # Should not raise any error
@@ -105,7 +107,7 @@ class TestUnitOfWork:
 
     async def test_rollback_discards_changes(self, uow, sample_user):
         await uow.users.add(sample_user)
-        
+
         # Rollback before commit
         await uow.rollback()
 

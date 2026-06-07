@@ -17,8 +17,8 @@ from src.modules.auth.exceptions import (
     DatabaseTimeoutError,
 )
 
-
 logger = logging.getLogger(__name__)
+
 
 class SQLAL_UnitOfWork(IUnitOfWork):
 
@@ -39,15 +39,11 @@ class SQLAL_UnitOfWork(IUnitOfWork):
             logger.debug("Transaction committed successfully")
 
         except Exception:
-            logger.warning(
-                "Transaction commit failed, rolling back"
-            )
+            logger.warning("Transaction commit failed, rolling back")
 
             await self._session.rollback()
 
-            logger.debug(
-                "Transaction rollback completed after commit failure"
-            )
+            logger.debug("Transaction rollback completed after commit failure")
 
             raise
 
