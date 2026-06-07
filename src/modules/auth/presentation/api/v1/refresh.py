@@ -8,7 +8,7 @@ from src.modules.auth.exceptions import (
     UserNotFoundError,
     InvalidToken,
     DatabaseError,
-    CacheError
+    CacheError,
 )
 
 logger = logging.getLogger(__name__)
@@ -38,12 +38,18 @@ async def refresh_token(
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     except DatabaseError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except CacheError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except Exception as e:
         logger.exception("Unexpected error during refresh-token endpoint")
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
-    
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
+
     logger.info("RefreshToken finished successfully")
     return RefreshTokenResponse(access_token=access_token, refresh_token=refresh_token)

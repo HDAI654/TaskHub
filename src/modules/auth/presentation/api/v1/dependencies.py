@@ -9,13 +9,21 @@ from src.modules.core.jwt_decoder import JWTDecoder
 
 from src.modules.auth.domain.ports.user_repo_interface import IUserRepository
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
-from src.modules.auth.domain.ports.password_reset_repo_interface import IPasswordResetRepository
+from src.modules.auth.domain.ports.password_reset_repo_interface import (
+    IPasswordResetRepository,
+)
 from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
 
-from src.modules.auth.infrastructure.persistence.sqlal_user_repo import SQLAL_UserRepository
-from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import SQLAL_UnitOfWork
+from src.modules.auth.infrastructure.persistence.sqlal_user_repo import (
+    SQLAL_UserRepository,
+)
+from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import (
+    SQLAL_UnitOfWork,
+)
 from src.modules.auth.infrastructure.cache.redis_token_repo import RedisTokenRepository
-from src.modules.auth.infrastructure.cache.redis_password_reset_repo import RedisPasswordResetRepository
+from src.modules.auth.infrastructure.cache.redis_password_reset_repo import (
+    RedisPasswordResetRepository,
+)
 from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
 from src.modules.auth.infrastructure.security.password_hasher import PasswordHasher
 
@@ -23,12 +31,14 @@ from src.modules.auth.application.signup import SignupService
 from src.modules.auth.application.login import LoginService
 from src.modules.auth.application.logout import LogoutService
 from src.modules.auth.application.set_password import SetPassService
-from src.modules.auth.application.reset_pass_token_publisher import ResetPassTokenPublishService
+from src.modules.auth.application.reset_pass_token_publisher import (
+    ResetPassTokenPublishService,
+)
 from src.modules.auth.application.reset_password import ResetPassService
 from src.modules.auth.application.token_rotation import TokenRotationService
 
-
 # ========== Base Dependencies ==========
+
 
 def get_user_repo(db: AsyncSession = Depends(get_async_session)) -> IUserRepository:
     return SQLAL_UserRepository(db)
@@ -38,7 +48,9 @@ def get_token_repo(client: Redis = Depends(get_redis_client)) -> ITokenRepositor
     return RedisTokenRepository(client)
 
 
-def get_password_reset_repo(client: Redis = Depends(get_redis_client)) -> IPasswordResetRepository:
+def get_password_reset_repo(
+    client: Redis = Depends(get_redis_client),
+) -> IPasswordResetRepository:
     return RedisPasswordResetRepository(client)
 
 
@@ -64,6 +76,7 @@ def get_password_hasher() -> PasswordHasher:
 
 
 # ========== Service Dependencies ==========
+
 
 async def get_signup_service(
     uow: IUnitOfWork = Depends(get_uow),
@@ -117,7 +130,9 @@ async def get_reset_password_service(
     jwt_encoder: JWTEncoder = Depends(get_jwt_encoder),
     password_hasher: PasswordHasher = Depends(get_password_hasher),
 ) -> ResetPassService:
-    return ResetPassService(uow, reset_pass_repo, token_repo, jwt_decoder, jwt_encoder, password_hasher)
+    return ResetPassService(
+        uow, reset_pass_repo, token_repo, jwt_decoder, jwt_encoder, password_hasher
+    )
 
 
 async def get_token_rotation_service(

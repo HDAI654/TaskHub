@@ -10,7 +10,7 @@ from src.modules.auth.exceptions import (
     PermissionDenied,
     WeakPasswordError,
     DatabaseError,
-    CacheError
+    CacheError,
 )
 
 logger = logging.getLogger(__name__)
@@ -44,16 +44,24 @@ async def reset_password(
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     except PermissionDenied:
-        raise HTTPException(status_code=404, detail="This reset-password-token is expired")
+        raise HTTPException(
+            status_code=404, detail="This reset-password-token is expired"
+        )
     except WeakPasswordError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except DatabaseError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except CacheError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except Exception as e:
         logger.exception("Unexpected error during reset-pass endpoint")
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
-    
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
+
     logger.info("ResetPassword finished successfully")
     return ResetPasswordResponse(access_token=access_token, refresh_token=refresh_token)

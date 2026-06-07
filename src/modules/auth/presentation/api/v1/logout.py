@@ -7,7 +7,7 @@ from src.modules.auth.exceptions import (
     UserNotFoundError,
     InvalidToken,
     DatabaseError,
-    CacheError
+    CacheError,
 )
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class LogoutResponse(BaseModel):
 async def logout(
     request: LogoutRequest,
     service: LogoutService = Depends(get_logout_service),
-):  
+):
     logger.info("Logout endpoint started")
     try:
         await service.execute(
@@ -38,12 +38,18 @@ async def logout(
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     except DatabaseError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except CacheError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except Exception as e:
         logger.exception("Unexpected error during logout endpoint")
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
 
     logger.info("Logout finished successfully")
     return LogoutResponse(message="Logged out successfully")

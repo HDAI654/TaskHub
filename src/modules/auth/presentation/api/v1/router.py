@@ -1,10 +1,16 @@
 from fastapi import APIRouter
-from src.modules.auth.presentation.api.v1.forget_password import router as forget_password_router
+from src.modules.auth.presentation.api.v1.forget_password import (
+    router as forget_password_router,
+)
 from src.modules.auth.presentation.api.v1.login import router as login_router
 from src.modules.auth.presentation.api.v1.logout import router as logout_router
 from src.modules.auth.presentation.api.v1.refresh import router as refresh_router
-from src.modules.auth.presentation.api.v1.reset_password import router as reset_password_router
-from src.modules.auth.presentation.api.v1.set_password import router as set_password_router
+from src.modules.auth.presentation.api.v1.reset_password import (
+    router as reset_password_router,
+)
+from src.modules.auth.presentation.api.v1.set_password import (
+    router as set_password_router,
+)
 from src.modules.auth.presentation.api.v1.signup import router as signup_router
 
 router = APIRouter(

@@ -9,7 +9,7 @@ from src.modules.auth.exceptions import (
     InvalidOldPassword,
     WeakPasswordError,
     DatabaseError,
-    CacheError
+    CacheError,
 )
 
 logger = logging.getLogger(__name__)
@@ -47,12 +47,18 @@ async def set_password(
     except WeakPasswordError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except DatabaseError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except CacheError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except Exception as e:
         logger.exception("Unexpected error during set-pass endpoint")
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
-    
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
+
     logger.info("SetPassword finished successfully")
     return SetPasswordResponse(access_token=access_token, refresh_token=refresh_token)

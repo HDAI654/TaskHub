@@ -6,12 +6,13 @@ from src.modules.auth.presentation.api.v1.dependencies import get_signup_service
 from src.modules.auth.exceptions import (
     WeakPasswordError,
     InvalidEmailError,
-    DatabaseError
+    DatabaseError,
 )
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
 
 class RegisterRequest(BaseModel):
     email: str
@@ -23,11 +24,13 @@ class RegisterResponse(BaseModel):
     refresh_token: str
 
 
-@router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED
+)
 async def register(
     request: RegisterRequest,
     service: SignupService = Depends(get_signup_service),
-):  
+):
     logger.info("Register endpoint started")
     try:
         access_token, refresh_token = await service.execute(
@@ -39,10 +42,14 @@ async def register(
     except InvalidEmailError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except DatabaseError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except Exception as e:
         logger.exception("Unexpected error during register endpoint")
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
-    
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
+
     logger.info("Register finished successfully: email=%s", request.email)
     return RegisterResponse(access_token=access_token, refresh_token=refresh_token)

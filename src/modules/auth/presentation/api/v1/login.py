@@ -7,7 +7,7 @@ from src.modules.auth.exceptions import (
     UserNotFoundError,
     InvalidEmailOrPassword,
     DatabaseError,
-    CacheError
+    CacheError,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class LoginResponse(BaseModel):
 async def login(
     request: LoginRequest,
     service: LoginService = Depends(get_login_service),
-):  
+):
     logger.info("Login endpoint started")
     try:
         access_token, refresh_token = await service.execute(
@@ -39,11 +39,17 @@ async def login(
     except (UserNotFoundError, InvalidEmailOrPassword):
         raise HTTPException(status_code=400, detail="Invalid email or password")
     except DatabaseError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except CacheError:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     except Exception as e:
         logger.exception("Unexpected error during login endpoint")
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again later.")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong. Please try again later."
+        )
     logger.info("Login finished successfully: email=%s", request.email)
     return LoginResponse(access_token=access_token, refresh_token=refresh_token)
