@@ -45,7 +45,6 @@ class TestLogin:
     async def token_repo(self, redis_client) -> ITokenRepository:
         return RedisTokenRepository(redis_client)
 
-
     @pytest.fixture
     async def uow(self, db_session) -> IUnitOfWork:
         return SQLAL_UnitOfWork(db_session)

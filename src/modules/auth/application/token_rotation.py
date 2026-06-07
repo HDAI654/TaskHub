@@ -3,13 +3,11 @@ from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
 from src.modules.auth.domain.value_objects.id import ID
-from src.modules.auth.exceptions import (
-    UserNotFoundError,
-    InvalidToken
-)
+from src.modules.auth.exceptions import UserNotFoundError, InvalidToken
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class TokenRotationService:
     def __init__(
@@ -51,7 +49,9 @@ class TokenRotationService:
         need = self.jwt_encoder.should_rotate_refresh_token(exp)
         if need:
             # Generate new refresh token
-            new_refresh = self.jwt_encoder.create_refresh_token(user.id, current_version)
+            new_refresh = self.jwt_encoder.create_refresh_token(
+                user.id, current_version
+            )
             return new_access, new_refresh
 
         return new_access, None

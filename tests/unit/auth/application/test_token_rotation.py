@@ -18,9 +18,8 @@ from src.modules.auth.application.token_rotation import TokenRotationService
 from src.modules.auth.domain.factories.user_factory import UserFactory
 from src.modules.auth.infrastructure.security.password_hasher import PasswordHasher
 from src.modules.core.conf import Config
-from src.modules.auth.exceptions import (
-    InvalidToken
-)
+from src.modules.auth.exceptions import InvalidToken
+
 
 class TestTokenRotation:
     @pytest.fixture(autouse=True)
@@ -75,7 +74,7 @@ class TestTokenRotation:
     @pytest.fixture
     async def token_repo(self, redis_client) -> ITokenRepository:
         return RedisTokenRepository(redis_client)
-    
+
     @pytest.fixture
     async def encoder(self):
         return JWTEncoder()
@@ -91,10 +90,7 @@ class TestTokenRotation:
     @pytest.fixture
     async def service(self, uow, token_repo, decoder, encoder):
         return TokenRotationService(
-            uow=uow,
-            token_repo=token_repo,
-            jwt_decoder=decoder,
-            jwt_encoder=encoder
+            uow=uow, token_repo=token_repo, jwt_decoder=decoder, jwt_encoder=encoder
         )
 
     async def test_rotation_success(self, service, user_refresh_token):
@@ -103,9 +99,7 @@ class TestTokenRotation:
         )
         assert isinstance(new_access_token, str) and new_refresh_token is None
 
-    async def test_rotation_success_with_new_refresh_token(
-        self, service, user
-    ):
+    async def test_rotation_success_with_new_refresh_token(self, service, user):
         exp = datetime.now(timezone.utc) + timedelta(
             minutes=Config.ROTATE_THRESHOLD_MINUTES
         )
@@ -124,11 +118,8 @@ class TestTokenRotation:
             refresh_token=refresh_token,
         )
         assert isinstance(new_access_token, str) and isinstance(new_refresh_token, str)
-    
 
-    async def test_rotation_with_invalid_version(
-        self, service, user, encoder
-    ):
+    async def test_rotation_with_invalid_version(self, service, user, encoder):
         refresh_token = encoder.create_refresh_token(user_id=user.id, version=100)
         with pytest.raises(InvalidToken):
             await service.execute(

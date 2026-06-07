@@ -1,6 +1,8 @@
 import logging
 from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
-from src.modules.auth.domain.ports.password_reset_repo_interface import IPasswordResetRepository
+from src.modules.auth.domain.ports.password_reset_repo_interface import (
+    IPasswordResetRepository,
+)
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.domain.value_objects.id import ID
@@ -8,6 +10,7 @@ from src.modules.auth.exceptions import InvalidToken, UserNotFoundError
 from src.modules.core.crypto_utils import IDGenerator
 
 logger = logging.getLogger(__name__)
+
 
 class ResetPassTokenPublishService:
     def __init__(
@@ -38,7 +41,7 @@ class ResetPassTokenPublishService:
                 "Logout failed: user_id=%s not found in database", payload["sub"]
             )
             raise
-            
+
         # check version of token
         current_version = await self.token_repo.get_user_version(user_id=user.id)
         if payload["ver"] != current_version:

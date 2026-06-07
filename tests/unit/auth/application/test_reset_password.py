@@ -6,8 +6,12 @@ from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import (
     SQLAL_UnitOfWork,
 )
-from src.modules.auth.domain.ports.password_reset_repo_interface import IPasswordResetRepository
-from src.modules.auth.infrastructure.cache.redis_password_reset_repo import RedisPasswordResetRepository
+from src.modules.auth.domain.ports.password_reset_repo_interface import (
+    IPasswordResetRepository,
+)
+from src.modules.auth.infrastructure.cache.redis_password_reset_repo import (
+    RedisPasswordResetRepository,
+)
 from src.modules.auth.infrastructure.persistence.models import Base
 from src.modules.core.database import get_async_session, engine
 from src.modules.auth.application.reset_password import ResetPassService
@@ -72,7 +76,7 @@ class TestResPass:
     @pytest.fixture
     async def token_repo(self, redis_client) -> ITokenRepository:
         return RedisTokenRepository(redis_client)
-    
+
     @pytest.fixture
     async def res_pass_repo(self, redis_client) -> IPasswordResetRepository:
         return RedisPasswordResetRepository(redis_client)
@@ -88,13 +92,12 @@ class TestResPass:
     @pytest.fixture
     async def user_access_token(self, user, encoder):
         return encoder.create_access_token(user_id=user.id)
-    
+
     @pytest.fixture
     async def res_token(self, user, res_pass_repo):
         token = IDGenerator.generate()
         await res_pass_repo.add(user_id=user.id, token=token)
         return token
-
 
     @pytest.fixture
     async def service(self, uow, res_pass_repo, token_repo, decoder, encoder, hasher):
@@ -111,7 +114,7 @@ class TestResPass:
         self,
         user,
         user_access_token,
-        service:ResetPassService,
+        service: ResetPassService,
         uow,
         hasher,
         token_repo,
@@ -131,9 +134,13 @@ class TestResPass:
 
         # Password change should change user version
         assert await token_repo.get_user_version(user.id) == 1
-    
+
     async def test_set_pass_with_invalid_version(
-        self, service, user, encoder, res_token,
+        self,
+        service,
+        user,
+        encoder,
+        res_token,
     ):
         access_token = encoder.create_access_token(user_id=user.id, version=100)
         with pytest.raises(InvalidToken):

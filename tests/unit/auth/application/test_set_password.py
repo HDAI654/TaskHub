@@ -125,7 +125,7 @@ class TestSetPass:
                 old_password="invalid_old_password:)",
                 new_password="NewSuper25@Secret",
             )
-    
+
     async def test_set_pass_with_invalid_version(
         self, service, user, encoder, user_raw_password
     ):

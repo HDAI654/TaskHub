@@ -2,11 +2,13 @@ from src.modules.auth.exceptions import (
     InvalidToken,
     UserNotFoundError,
     PermissionDenied,
-    WeakPasswordError
+    WeakPasswordError,
 )
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
-from src.modules.auth.domain.ports.password_reset_repo_interface import IPasswordResetRepository
+from src.modules.auth.domain.ports.password_reset_repo_interface import (
+    IPasswordResetRepository,
+)
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.auth.domain.value_objects.password import HashedPassword
 from src.modules.core.jwt_decoder import JWTDecoder
@@ -37,7 +39,7 @@ class ResetPassService:
         self.jwt_encoder = jwt_encoder
         self.password_hasher = password_hasher
 
-    async def execute(self, access_token: str, token:str, new_password: str):
+    async def execute(self, access_token: str, token: str, new_password: str):
         logging.info("Changing user password (Reset)")
 
         # Decode and validate access token
@@ -46,13 +48,13 @@ class ResetPassService:
         except InvalidToken as e:
             logger.warning("access_token was invalid: %s", str(e))
             raise
-        
+
         # check token
         tkn = await self.res_pass_repo.get(token)
         if tkn is None:
             raise PermissionDenied("Expired token")
         else:
-            await self.res_pass_repo.delete(token) 
+            await self.res_pass_repo.delete(token)
 
         # Validate new password strength
         try:
@@ -95,8 +97,12 @@ class ResetPassService:
 
         # Generate access and refresh tokens
         current_version = await self.token_repo.get_user_version(user_id=user.id)
-        new_access_token = self.jwt_encoder.create_access_token(user.id, version=current_version)
-        new_refresh_token = self.jwt_encoder.create_refresh_token(user.id, version=current_version)
+        new_access_token = self.jwt_encoder.create_access_token(
+            user.id, version=current_version
+        )
+        new_refresh_token = self.jwt_encoder.create_refresh_token(
+            user.id, version=current_version
+        )
 
         logger.info("User password changed successfully: public_id=%s", user.id)
 

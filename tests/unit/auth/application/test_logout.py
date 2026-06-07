@@ -112,13 +112,11 @@ class TestLogout:
                 refresh_token,
             )
 
-    async def test_logout_with_invalid_version(
-            self, service, user, encoder
-        ):
-            access_token = encoder.create_access_token(user_id=user.id, version=100)
-            refresh_token = encoder.create_refresh_token(user_id=user.id, version=100)
-            with pytest.raises(InvalidToken):
-                await service.execute(
-                    access_token,
-                    refresh_token,
-                )
+    async def test_logout_with_invalid_version(self, service, user, encoder):
+        access_token = encoder.create_access_token(user_id=user.id, version=100)
+        refresh_token = encoder.create_refresh_token(user_id=user.id, version=100)
+        with pytest.raises(InvalidToken):
+            await service.execute(
+                access_token,
+                refresh_token,
+            )

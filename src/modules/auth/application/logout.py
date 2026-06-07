@@ -22,13 +22,9 @@ class LogoutService:
     async def execute(self, access_token: str, refresh_token: str):
         logger.info("Logging out user")
         # Decode and validate access token and refresh token
-        access_payload = self.jwt_decoder.decode_and_validate(
-            access_token, "access"
-        )
-        refresh_payload = self.jwt_decoder.decode_and_validate(
-            refresh_token, "refresh"
-        )
-        
+        access_payload = self.jwt_decoder.decode_and_validate(access_token, "access")
+        refresh_payload = self.jwt_decoder.decode_and_validate(refresh_token, "refresh")
+
         if access_payload["sub"] != refresh_payload["sub"]:
             logger.warning(
                 "Token user mismatch detected: access_token refers to user_id=%s, refresh_token refers to user_id=%s",
@@ -47,7 +43,7 @@ class LogoutService:
                 "Logout failed: user_id=%s not found in database", access_payload["sub"]
             )
             raise
-            
+
         # check version of token
         current_version = await self.token_repo.get_user_version(user_id=user.id)
         if access_payload["ver"] != current_version:
