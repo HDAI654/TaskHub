@@ -17,7 +17,9 @@ class UserModel(Base):
     public_id = Column(String(36), unique=True, nullable=False, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password = Column(String(255), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
     updated_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
