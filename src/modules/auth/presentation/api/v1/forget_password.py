@@ -21,6 +21,7 @@ router = APIRouter()
 
 RATE_LIMIT_MAX_REQUESTS = 3
 
+
 class ForgetPasswordRequest(BaseModel):
     access_token: str
 
@@ -30,7 +31,9 @@ class ForgetPasswordResponse(BaseModel):
 
 
 @router.post("/forget-password", response_model=ForgetPasswordResponse)
-@rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="forget_pass")
+@rate_limit(
+    max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="forget_pass"
+)
 async def publish_reset_token(
     request: Request,
     forget_pass_data: ForgetPasswordRequest,

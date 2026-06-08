@@ -19,6 +19,7 @@ router = APIRouter()
 
 RATE_LIMIT_MAX_REQUESTS = 5
 
+
 class SetPasswordRequest(BaseModel):
     access_token: str
     old_password: str
@@ -31,7 +32,9 @@ class SetPasswordResponse(BaseModel):
 
 
 @router.post("/set-password", response_model=SetPasswordResponse)
-@rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="set_password")
+@rate_limit(
+    max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="set_password"
+)
 async def set_password(
     request: Request,
     set_pass_data: SetPasswordRequest,

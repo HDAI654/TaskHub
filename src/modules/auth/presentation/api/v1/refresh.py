@@ -18,6 +18,7 @@ router = APIRouter()
 
 RATE_LIMIT_MAX_REQUESTS = 20
 
+
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
 

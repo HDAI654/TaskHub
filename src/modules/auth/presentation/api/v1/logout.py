@@ -17,6 +17,7 @@ router = APIRouter()
 
 RATE_LIMIT_MAX_REQUESTS = 30
 
+
 class LogoutRequest(BaseModel):
     access_token: str
     refresh_token: str

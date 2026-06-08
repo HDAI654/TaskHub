@@ -20,6 +20,7 @@ router = APIRouter()
 
 RATE_LIMIT_MAX_REQUESTS = 5
 
+
 class ResetPasswordRequest(BaseModel):
     access_token: str
     token: str

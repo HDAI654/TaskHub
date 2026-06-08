@@ -17,6 +17,7 @@ router = APIRouter()
 
 RATE_LIMIT_MAX_REQUESTS = 5
 
+
 class RegisterRequest(BaseModel):
     email: str
     password: str
