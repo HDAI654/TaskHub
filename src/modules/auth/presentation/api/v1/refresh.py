@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 from src.modules.auth.application.token_rotation import TokenRotationService
@@ -29,13 +29,14 @@ class RefreshTokenResponse(BaseModel):
 @router.post("/refresh", response_model=RefreshTokenResponse)
 @rate_limit(max_requests=20, window="min", key_prefix="refresh")
 async def refresh_token(
-    request: RefreshTokenRequest,
+    request: Request,
+    refresh_data: RefreshTokenRequest,
     service: TokenRotationService = Depends(get_token_rotation_service),
 ):
     logger.info("RefreshToken endpoint started")
     try:
         access_token, refresh_token = await service.execute(
-            refresh_token=request.refresh_token,
+            refresh_token=refresh_data.refresh_token,
         )
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")

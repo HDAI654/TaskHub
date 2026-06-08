@@ -1,11 +1,12 @@
 import logging
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Request
 from pydantic import BaseModel
 from src.modules.auth.application.signup import SignupService
 from src.modules.auth.presentation.api.v1.dependencies import get_signup_service
 from src.modules.auth.exceptions import (
     WeakPasswordError,
     InvalidEmailError,
+    UserDuplicateError,
     DatabaseError,
 )
 from src.modules.core.rate_limiter import rate_limit
@@ -30,19 +31,24 @@ class RegisterResponse(BaseModel):
 )
 @rate_limit(max_requests=5, window="min", key_prefix="register")
 async def register(
-    request: RegisterRequest,
+    request: Request,
+    register_data: RegisterRequest,
     service: SignupService = Depends(get_signup_service),
 ):
     logger.info("Register endpoint started")
     try:
         access_token, refresh_token = await service.execute(
-            email=request.email,
-            password=request.password,
+            email=register_data.email,
+            password=register_data.password,
         )
     except WeakPasswordError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except InvalidEmailError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except UserDuplicateError as e:
+        raise HTTPException(
+            status_code=400, detail="Another user already uses this email."
+        )
     except DatabaseError:
         raise HTTPException(
             status_code=500, detail="Something went wrong. Please try again later."
@@ -53,5 +59,5 @@ async def register(
             status_code=500, detail="Something went wrong. Please try again later."
         )
 
-    logger.info("Register finished successfully: email=%s", request.email)
+    logger.info("Register finished successfully: email=%s", register_data.email)
     return RegisterResponse(access_token=access_token, refresh_token=refresh_token)

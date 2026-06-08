@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from src.modules.auth.application.reset_pass_token_publisher import (
     ResetPassTokenPublishService,
@@ -28,15 +28,16 @@ class ForgetPasswordResponse(BaseModel):
     message: str
 
 
-@router.post("/forget-pass", response_model=ForgetPasswordResponse)
+@router.post("/forget-password", response_model=ForgetPasswordResponse)
 @rate_limit(max_requests=3, window="min", key_prefix="forget_pass")
 async def publish_reset_token(
-    request: ForgetPasswordRequest,
+    request: Request,
+    forget_pass_data: ForgetPasswordRequest,
     service: ResetPassTokenPublishService = Depends(get_reset_password_publish_service),
 ):
     logger.info("ForgetPassword endpoint started")
     try:
-        await service.execute(access_token=request.access_token)
+        await service.execute(access_token=forget_pass_data.access_token)
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     except DatabaseError:

@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from src.modules.auth.application.logout import LogoutService
 from src.modules.auth.presentation.api.v1.dependencies import get_logout_service
@@ -28,14 +28,15 @@ class LogoutResponse(BaseModel):
 @router.post("/logout", response_model=LogoutResponse)
 @rate_limit(max_requests=30, window="min", key_prefix="logout")
 async def logout(
-    request: LogoutRequest,
+    request: Request,
+    logout_data: LogoutRequest,
     service: LogoutService = Depends(get_logout_service),
 ):
     logger.info("Logout endpoint started")
     try:
         await service.execute(
-            access_token=request.access_token,
-            refresh_token=request.refresh_token,
+            access_token=logout_data.access_token,
+            refresh_token=logout_data.refresh_token,
         )
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
