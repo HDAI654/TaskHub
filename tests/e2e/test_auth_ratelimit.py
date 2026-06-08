@@ -25,6 +25,9 @@ from src.modules.auth.presentation.api.v1.refresh import (
 from src.modules.auth.presentation.api.v1.logout import (
     RATE_LIMIT_MAX_REQUESTS as LOGOUT_RATE_LIMIT_MAX_REQUESTS,
 )
+from src.modules.auth.presentation.api.v1.delete_account import (
+    RATE_LIMIT_MAX_REQUESTS as DEL_ACC_RATE_LIMIT_MAX_REQUESTS,
+)
 
 
 class TestAuthRateLimit:
@@ -276,6 +279,26 @@ class TestAuthRateLimit:
             json={
                 "access_token": access_token,
                 "refresh_token": refresh_token,
+            },
+        )
+        assert response.status_code == 429
+        assert "Rate limit exceeded" in response.json()["detail"]
+
+    async def test_rate_limiting_on_del_acc(self, client, user_data):
+        for i in range(DEL_ACC_RATE_LIMIT_MAX_REQUESTS):
+            response = await client.post(
+                "/api/v1/auth/delete-account",
+                json={
+                    "access_token": "fake_token:-)",
+                },
+            )
+            assert response.status_code != 429
+
+        # Next request should be rate limited
+        response = await client.post(
+            "/api/v1/auth/delete-account",
+            json={
+                "access_token": "fake_token:-)",
             },
         )
         assert response.status_code == 429

@@ -155,12 +155,9 @@ class TestAuthE2E:
         # ===== Delete Account =====
         response = await client.post(
             "/api/v1/auth/delete-account",
-            json={
-                "access_token":access_token
-            },
+            json={"access_token": access_token},
         )
         assert response.status_code == 200
-
 
     async def test_password_reset_flow(self, client, user_data):
         """
