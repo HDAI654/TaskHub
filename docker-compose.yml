@@ -1,0 +1,54 @@
+services:
+  main-app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # App
+      - APP_NAME=TaskHub
+      - APP_ENV=production
+
+      # DB
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/taskhub
+
+      # Cache
+      - REDIS_URL=redis://redis:6379/0
+
+      # JWT
+      - JWT_ALGORITHM=RS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=15
+      - REFRESH_TOKEN_EXPIRE_MINUTES=43200
+      - ROTATE_THRESHOLD_MINUTES=4320
+
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=taskhub
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

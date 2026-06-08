@@ -1,4 +1,3 @@
-# src/modules/auth/infrastructure/cache/redis_password_reset_repo.py
 import logging
 from redis.asyncio import Redis
 from src.modules.auth.domain.value_objects.id import ID
