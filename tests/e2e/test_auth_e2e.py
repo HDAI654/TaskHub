@@ -62,6 +62,8 @@ class TestAuthE2E:
         3. Change password
         4. Login with new password
         5. Logout
+        6. Login Again
+        7. Delete Account
         """
         email = user_data["email"]
         password = user_data["password"]
@@ -135,6 +137,30 @@ class TestAuthE2E:
         )
         assert response.status_code == 200
         assert response.json()["message"] == "Logged out successfully"
+
+        # ===== Login Again =====
+        response = await client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": email,
+                "password": new_password,
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "access_token" in data
+        assert "refresh_token" in data
+        access_token = data["access_token"]
+
+        # ===== Delete Account =====
+        response = await client.post(
+            "/api/v1/auth/delete-account",
+            json={
+                "access_token":access_token
+            },
+        )
+        assert response.status_code == 200
+
 
     async def test_password_reset_flow(self, client, user_data):
         """

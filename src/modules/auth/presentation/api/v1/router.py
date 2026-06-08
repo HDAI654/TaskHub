@@ -1,4 +1,7 @@
 from fastapi import APIRouter
+from src.modules.auth.presentation.api.v1.delete_account import (
+    router as delete_account_router,
+)
 from src.modules.auth.presentation.api.v1.forget_password import (
     router as forget_password_router,
 )
@@ -18,6 +21,7 @@ router = APIRouter(
     tags=["Authentication"],
 )
 
+router.include_router(delete_account_router)
 router.include_router(forget_password_router)
 router.include_router(login_router)
 router.include_router(logout_router)
