@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+RATE_LIMIT_MAX_REQUESTS = 20
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
@@ -27,7 +28,7 @@ class RefreshTokenResponse(BaseModel):
 
 
 @router.post("/refresh", response_model=RefreshTokenResponse)
-@rate_limit(max_requests=20, window="min", key_prefix="refresh")
+@rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="refresh")
 async def refresh_token(
     request: Request,
     refresh_data: RefreshTokenRequest,

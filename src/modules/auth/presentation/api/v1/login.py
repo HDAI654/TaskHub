@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+RATE_LIMIT_MAX_REQUESTS = 10
 
 class LoginRequest(BaseModel):
     email: str
@@ -27,7 +28,7 @@ class LoginResponse(BaseModel):
 
 
 @router.post("/login", response_model=LoginResponse)
-@rate_limit(max_requests=10, window="min", key_prefix="login")
+@rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="login")
 async def login(
     request: Request,
     login_data: LoginRequest,

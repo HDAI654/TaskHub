@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+RATE_LIMIT_MAX_REQUESTS = 5
 
 class RegisterRequest(BaseModel):
     email: str
@@ -29,7 +30,7 @@ class RegisterResponse(BaseModel):
 @router.post(
     "/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED
 )
-@rate_limit(max_requests=5, window="min", key_prefix="register")
+@rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="register")
 async def register(
     request: Request,
     register_data: RegisterRequest,

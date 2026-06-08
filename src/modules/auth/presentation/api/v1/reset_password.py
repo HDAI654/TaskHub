@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+RATE_LIMIT_MAX_REQUESTS = 5
 
 class ResetPasswordRequest(BaseModel):
     access_token: str
@@ -31,7 +32,7 @@ class ResetPasswordResponse(BaseModel):
 
 
 @router.post("/reset-password", response_model=ResetPasswordResponse)
-@rate_limit(max_requests=5, window="min", key_prefix="reset_pass")
+@rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="reset_pass")
 async def reset_password(
     request: Request,
     res_pass_data: ResetPasswordRequest,

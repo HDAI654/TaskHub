@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+RATE_LIMIT_MAX_REQUESTS = 30
 
 class LogoutRequest(BaseModel):
     access_token: str
@@ -26,7 +27,7 @@ class LogoutResponse(BaseModel):
 
 
 @router.post("/logout", response_model=LogoutResponse)
-@rate_limit(max_requests=30, window="min", key_prefix="logout")
+@rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="logout")
 async def logout(
     request: Request,
     logout_data: LogoutRequest,

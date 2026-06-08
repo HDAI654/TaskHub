@@ -326,7 +326,7 @@ class TestAuthE2E:
         assert response.status_code == 201
         refresh_token = response.json()["refresh_token"]
 
-        # create expired token
+        # Create expired token
         decoder = JWTDecoder()
         payload = decoder.decode_token(refresh_token)
         exp = datetime.now(timezone.utc)

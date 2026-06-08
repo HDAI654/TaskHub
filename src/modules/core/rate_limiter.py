@@ -101,17 +101,6 @@ class RateLimiter:
 
         return True
 
-    async def get_remaining(self, identifier: str) -> int:
-        """Get remaining requests allowed in current window"""
-        client = await get_redis()
-        key = self._get_key(identifier)
-
-        count = await client.get(f"{key}:count")
-        current_count = int(count) if count else 0
-
-        remaining = self.max_requests - current_count
-        return max(0, remaining)
-
     async def get_reset_time(self, identifier: str) -> int:
         """Get seconds until rate limit resets"""
         client = await get_redis()
@@ -138,7 +127,6 @@ def rate_limit(max_requests: int, window: str, key_prefix: str = "api"):
 
     Headers returned:
         X-RateLimit-Limit: Maximum requests per window
-        X-RateLimit-Remaining: Remaining requests in current window
         X-RateLimit-Reset: Seconds until rate limit resets
     """
     key_prefix = "rl_" + key_prefix
@@ -170,13 +158,11 @@ def rate_limit(max_requests: int, window: str, key_prefix: str = "api"):
             allowed = await limiter.is_allowed(identifier)
 
             # Get rate limit headers info
-            remaining = await limiter.get_remaining(identifier)
             reset_time = await limiter.get_reset_time(identifier)
 
             # Add headers to response
             response_headers = {
                 "X-RateLimit-Limit": str(max_requests),
-                "X-RateLimit-Remaining": str(remaining),
                 "X-RateLimit-Reset": str(reset_time),
             }
 
@@ -189,10 +175,6 @@ def rate_limit(max_requests: int, window: str, key_prefix: str = "api"):
 
             # Execute the endpoint
             result = await func(*args, **kwargs)
-
-            # Add headers to response if result is a Response object
-            if hasattr(result, "headers"):
-                result.headers.update(response_headers)
 
             return result
 
