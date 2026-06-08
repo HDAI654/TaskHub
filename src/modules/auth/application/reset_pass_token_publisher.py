@@ -8,6 +8,8 @@ from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.auth.exceptions import InvalidToken, UserNotFoundError
 from src.modules.core.crypto_utils import IDGenerator
+from src.modules.core.conf import Config
+from workers.email_tasks import send_password_reset_email
 
 logger = logging.getLogger(__name__)
 
@@ -49,4 +51,11 @@ class ResetPassTokenPublishService:
 
         token = IDGenerator.generate()
         await self.res_pass_repo.add(token, user.id)
+
+        # Send email
+        if Config.APP_ENV != "development":
+            send_password_reset_email.delay(
+                to_email=user.email.value, token=token, expires_in_minutes=15
+            )
+
         logger.info("Token Published successfully: user_public_id=%s", user.id.value)
