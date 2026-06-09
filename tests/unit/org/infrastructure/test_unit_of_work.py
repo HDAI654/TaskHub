@@ -1,6 +1,6 @@
 import pytest
-from sqlalchemy.exc import OperationalError, TimeoutError, SQLAlchemyError
-from src.modules.core.database import engine
+from sqlalchemy.exc import OperationalError
+from src.modules.core.database import engine, get_async_session
 from src.modules.org.infrastructure.persistence.sqlal_unit_of_work import (
     SQLAL_UnitOfWork,
 )
@@ -9,10 +9,8 @@ from src.modules.org.domain.entities.organization import OrgEntity
 from src.modules.org.domain.value_objects.id import ID
 from src.modules.org.domain.value_objects.name import Name
 from src.modules.org.domain.value_objects.datetime import DateTime
-from src.modules.auth.exceptions import (
-    DatabaseOperationError,
+from src.modules.org.exceptions import (
     DatabaseConnectionError,
-    DatabaseTimeoutError,
 )
 
 
@@ -27,8 +25,6 @@ class TestUnitOfWork:
 
     @pytest.fixture
     async def db_session(self):
-        from src.modules.core.database import get_async_session
-
         async for session in get_async_session():
             yield session
             await session.rollback()
@@ -61,6 +57,7 @@ class TestUnitOfWork:
             side_effect=lambda: None,
         )
 
+        # Add an org
         await uow.orgs.add(sample_org)
 
         mocker.patch.object(
@@ -69,13 +66,16 @@ class TestUnitOfWork:
             side_effect=OperationalError("statement", "params", "orig"),
         )
 
+        # Mock rollback to track call
         mock_rollback = mocker.patch.object(uow._session, "rollback")
 
         with pytest.raises(DatabaseConnectionError):
             await uow.commit()
 
-        mock_rollback.assert_called_once()
+        # Rollback should have been called
+        uow._session.rollback.assert_called_once()
 
+        # Verify the user wasn't saved
         assert await uow.orgs.exists_by_id(sample_org.id) is False
 
     async def test_commit_with_no_changes(self, uow):

@@ -11,7 +11,7 @@ from sqlalchemy.exc import (
     TimeoutError,
     SQLAlchemyError,
 )
-from src.modules.auth.exceptions import (
+from src.modules.org.exceptions import (
     DatabaseOperationError,
     DatabaseConnectionError,
     DatabaseTimeoutError,

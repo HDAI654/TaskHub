@@ -1,5 +1,4 @@
 import logging
-from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import update, select, exists, delete
 from sqlalchemy.exc import (
@@ -20,12 +19,11 @@ from src.modules.org.exceptions import (
     NoChangesError,
     MemberDuplicateError,
     MemberNotFoundError,
+    UserNotFoundError,
     DatabaseOperationError,
     DatabaseConnectionError,
     DatabaseTimeoutError,
 )
-from src.modules.auth.exceptions import UserNotFoundError
-from src.modules.auth.infrastructure.persistence.models import UserModel
 from src.modules.org.infrastructure.persistence.models import OrgMemberModel
 
 logger = logging.getLogger(__name__)
@@ -118,23 +116,6 @@ class SQLAL_OrgRepository(IOrgRepository):
         logger.debug("Organization not found: public_id=%s", org_id.value)
         raise OrgNotFoundError(f"Organization with id {org_id.value!r} not found")
 
-    async def get_by_name(self, name: Name) -> OrgEntity:
-        logger.info("Getting organization by name: %s", name.value)
-
-        result = await self._execute_db_operation(
-            "get_organization_by_name",
-            self._session.execute,
-            select(OrgModel).where(OrgModel.name == name.value),
-        )
-        org_row = result.scalar_one_or_none()
-
-        if org_row:
-            logger.info("Organization found: name=%s", name.value)
-            return self._to_entity(org_row)
-
-        logger.debug("Organization not found: name=%s", name.value)
-        raise OrgNotFoundError(f"Organization with name {name.value!r} not found")
-
     async def exists_by_id(self, org_id: ID) -> bool:
         result = await self._execute_db_operation(
             "exists_organization_by_id",
@@ -143,17 +124,9 @@ class SQLAL_OrgRepository(IOrgRepository):
         )
         return result.scalar()
 
-    async def exists_by_name(self, name: Name) -> bool:
-        result = await self._execute_db_operation(
-            "exists_organization_by_name",
-            self._session.execute,
-            select(exists().where(OrgModel.name == name.value)),
-        )
-        return result.scalar()
-
     async def get_members(
         self, org_id: ID, role: Role | None = None
-    ) -> list[dict[str, Any]]:
+    ) -> list[dict[str, str]]:
         logger.info(
             "Getting members for organization: public_id=%s, role_filter=%s",
             org_id.value,
@@ -162,12 +135,10 @@ class SQLAL_OrgRepository(IOrgRepository):
 
         query = (
             select(
-                UserModel.public_id,
-                UserModel.email,
+                OrgMemberModel.user_id,
                 OrgMemberModel.role,
                 OrgMemberModel.joined_at,
             )
-            .join(OrgMemberModel, UserModel.public_id == OrgMemberModel.user_id)
             .where(OrgMemberModel.organization_id == org_id.value)
         )
 
@@ -184,10 +155,9 @@ class SQLAL_OrgRepository(IOrgRepository):
         for row in result:
             members.append(
                 {
-                    "user_id": row.public_id,
-                    "email": row.email,
+                    "user_id": row.user_id,
                     "role": row.role,
-                    "joined_at": row.joined_at.isoformat() if row.joined_at else None,
+                    "joined_at": row.joined_at.isoformat(),
                 }
             )
 
@@ -197,6 +167,48 @@ class SQLAL_OrgRepository(IOrgRepository):
             org_id.value,
         )
         return members
+
+    async def get_orgs_by_user_id(self, user_id: ID) -> list[dict[str, str]]:
+        logger.info(
+            "Getting organizations for member: public_id=%s",
+            user_id.value,
+        )
+
+        query = (
+            select(
+                OrgMemberModel.organization_id,
+                OrgMemberModel.role,
+                OrgMemberModel.joined_at,
+                OrgModel.name,
+                
+            )
+            .join(OrgMemberModel, OrgModel.public_id == OrgMemberModel.organization_id)
+            .where(OrgMemberModel.user_id == user_id.value)
+        )
+
+        result = await self._execute_db_operation(
+            "get_user_orgs",
+            self._session.execute,
+            query,
+        )
+
+        orgs = []
+        for row in result:
+            orgs.append(
+                {
+                    "organization_id": row.organization_id,
+                    "name": row.name,
+                    "role": row.role,
+                    "joined_at": row.joined_at.isoformat(),
+                }
+            )
+
+        logger.info(
+            "Found %d organizations for member: public_id=%s",
+            len(orgs),
+            user_id.value,
+        )
+        return orgs
 
     async def add_member(self, org_id: ID, user_id: ID, role: Role) -> None:
         logger.info(
@@ -210,15 +222,6 @@ class SQLAL_OrgRepository(IOrgRepository):
         org_exists = await self.exists_by_id(org_id)
         if not org_exists:
             raise OrgNotFoundError(f"Organization with id {org_id.value!r} not found")
-
-        # Check if user exists
-        user_result = await self._execute_db_operation(
-            "check_user_exists",
-            self._session.execute,
-            select(UserModel).where(UserModel.public_id == user_id.value),
-        )
-        if not user_result.scalar_one_or_none():
-            raise UserNotFoundError(f"User with id {user_id.value!r} not found")
 
         # Check if already a member
         existing_role = await self.get_user_role(org_id, user_id)
@@ -344,6 +347,9 @@ class SQLAL_OrgRepository(IOrgRepository):
             return await coro(*args, **kwargs)
         except IntegrityError as e:
             logger.exception(f"Database integrity error during {operation}")
+            if "foreign key" in str(e).lower() or "FOREIGN KEY" in str(e).upper():
+                if "user_id" in str(e):
+                    raise UserNotFoundError("User not found") from e
             raise DatabaseOperationError(f"Database integrity error: {e}") from e
         except OperationalError as e:
             logger.exception(f"Database connection error during {operation}")
