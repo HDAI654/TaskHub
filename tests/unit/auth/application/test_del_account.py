@@ -11,7 +11,7 @@ from src.modules.auth.infrastructure.security.password_hasher import PasswordHas
 from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.auth.infrastructure.cache.redis_token_repo import RedisTokenRepository
-from src.modules.auth.infrastructure.persistence.models import Base
+from src.modules.core.database import Base
 from src.modules.core.database import get_async_session, engine
 from src.modules.auth.domain.factories.user_factory import UserFactory
 from src.modules.auth.exceptions import InvalidToken

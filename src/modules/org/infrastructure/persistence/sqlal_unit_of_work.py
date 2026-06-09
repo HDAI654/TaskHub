@@ -25,7 +25,7 @@ class SQLAL_UnitOfWork(IUnitOfWork):
     def __init__(self, session: AsyncSession):
         self._session = session
 
-        self.users = SQLAL_OrgRepository(session)
+        self.orgs = SQLAL_OrgRepository(session)
 
     async def commit(self) -> None:
         logger.info("Committing transaction")

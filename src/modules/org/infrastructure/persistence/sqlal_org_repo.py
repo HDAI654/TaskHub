@@ -147,12 +147,12 @@ class SQLAL_OrgRepository(IOrgRepository):
 
         query = (
             select(UserModel.public_id, UserModel.email, OrgMemberModel.role, OrgMemberModel.joined_at)
-            .join(OrgMemberModel, UserModel.id == OrgMemberModel.user_id)
+            .join(OrgMemberModel, UserModel.public_id == OrgMemberModel.user_id)
             .where(OrgMemberModel.organization_id == org_id.value)
         )
 
         if role:
-            query = query.where(OrgMemberModel.role == role.lower())
+            query = query.where(OrgMemberModel.role == role.value)
 
         result = await self._execute_db_operation(
             "get_organization_members",

@@ -6,7 +6,8 @@ from sqlalchemy import select, exists
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from src.modules.auth.infrastructure.persistence.models import Base, UserModel
+from src.modules.auth.infrastructure.persistence.models import UserModel
+from src.modules.core.database import Base
 from src.modules.auth.domain.factories.user_factory import UserFactory
 from src.modules.auth.exceptions import (
     UserNotFoundError,

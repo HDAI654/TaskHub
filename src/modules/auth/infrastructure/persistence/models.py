@@ -5,9 +5,7 @@ from sqlalchemy import (
     String,
     DateTime,
 )
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
+from src.modules.core.database import Base
 
 
 class UserModel(Base):

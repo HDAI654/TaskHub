@@ -1,25 +1,20 @@
-# tests/test_unit_of_work.py
 import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.exc import (
     OperationalError,
-    TimeoutError,
-    SQLAlchemyError,
 )
 from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import (
     SQLAL_UnitOfWork,
 )
-from src.modules.auth.infrastructure.persistence.models import Base
+from src.modules.core.database import Base
 from src.modules.auth.domain.entities.user import UserEntity
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.auth.domain.value_objects.email import Email
 from src.modules.auth.domain.value_objects.password import HashedPassword
 from src.modules.auth.exceptions import (
     DatabaseConnectionError,
-    DatabaseTimeoutError,
-    DatabaseOperationError,
 )
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -74,32 +69,34 @@ class TestUnitOfWork:
         assert saved_user.id.value == sample_user.id.value
         assert saved_user.email.value == sample_user.email.value
 
-    """async def test_commit_rollback_on_error(self, uow, sample_user, mocker):
-        
-        side_effects = [OperationalError, TimeoutError, SQLAlchemyError]
-        exceptions = [DatabaseConnectionError, DatabaseTimeoutError, DatabaseOperationError]
-        
-        async for side_effect, exception in zip(side_effects, exceptions):
-            # Add a user
-            await uow.users.add(sample_user)
+    async def test_commit_rollback_on_error(self, uow, sample_user, mocker): 
+        mocker.patch.object(
+            uow._session,
+            "flush",
+            side_effect=lambda: None,
+        )
 
-            mocker.patch.object(
-                uow._session, 
-                "commit", 
-                side_effect=side_effect()
-            )
-            
-            await uow.users.add(sample_user)
-            
-            with pytest.raises(exception):
-                await uow.commit()
+        # Add a user
+        await uow.users.add(sample_user)
         
-            # Rollback should have been called
-            uow._session.rollback.assert_called_once()
-        
+        mocker.patch.object(
+            uow._session,
+            "commit",
+            side_effect=OperationalError("statement", "params", "orig")
+        )
 
-        # Verify yhe user wasn't saved
-        assert await uow.users.exists_by_id(sample_user.id) is False"""
+        # Mock rollback to track call
+        mock_rollback = mocker.patch.object(uow._session, "rollback")
+        
+        with pytest.raises(DatabaseConnectionError):
+            await uow.commit()
+        
+        # Rollback should have been called
+        uow._session.rollback.assert_called_once()
+            
+        
+        # Verify the user wasn't saved
+        assert await uow.users.exists_by_id(sample_user.id) is False
 
     async def test_commit_with_no_changes(self, uow):
         # Should not raise any error

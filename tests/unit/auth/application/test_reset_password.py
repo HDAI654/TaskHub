@@ -12,7 +12,7 @@ from src.modules.auth.domain.ports.password_reset_repo_interface import (
 from src.modules.auth.infrastructure.cache.redis_password_reset_repo import (
     RedisPasswordResetRepository,
 )
-from src.modules.auth.infrastructure.persistence.models import Base
+from src.modules.core.database import Base
 from src.modules.core.database import get_async_session, engine
 from src.modules.auth.application.reset_password import ResetPassService
 from src.modules.core.jwt_decoder import JWTDecoder

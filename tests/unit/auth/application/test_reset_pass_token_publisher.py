@@ -6,7 +6,7 @@ from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.auth.infrastructure.persistence.sqlal_unit_of_work import (
     SQLAL_UnitOfWork,
 )
-from src.modules.auth.infrastructure.persistence.models import Base
+from src.modules.core.database import Base
 from src.modules.core.database import get_async_session, engine
 from src.modules.auth.application.reset_pass_token_publisher import (
     ResetPassTokenPublishService,
