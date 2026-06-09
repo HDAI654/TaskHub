@@ -191,7 +191,6 @@ class SQLAL_UserRepository(IUserRepository):
         try:
             return await coro(*args, **kwargs)
         except IntegrityError as e:
-            # This is usually a duplicate key violation
             logger.exception(f"Database integrity error during {operation}")
             if "duplicate" in str(e).lower() or "unique" in str(e).lower():
                 raise UserDuplicateError("User with this email already exists") from e
