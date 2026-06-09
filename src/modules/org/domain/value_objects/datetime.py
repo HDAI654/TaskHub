@@ -3,25 +3,23 @@ from datetime import datetime, timezone
 from src.modules.org.exceptions import InvalidDatetimeError
 
 
-class DateTime(BaseVO[float]):
-    def __init__(self, value: float | int = None):
+class DateTime(BaseVO[str]):
+    def __init__(self, value: str = None):
         if value is None:
-            value = datetime.now(timezone.utc)
+            value = datetime.now(timezone.utc).isoformat()
         else:
-            value = float(value) if isinstance(value, int) else value
-            if not isinstance(value, float):
+            if not isinstance(value, str):
                 raise InvalidDatetimeError(
-                    f"DateTime must be float or integer, got {type(value).__name__}"
+                    f"DateTime must be string, got {type(value).__name__}"
                 )
-            if value <= 0:
-                raise InvalidDatetimeError("DateTime must be positive")
+            value = value.strip()
+            if not value:
+                raise InvalidDatetimeError(
+                    f"DateTime must be a non-empty string"
+                )
             try:
-                value = datetime.fromtimestamp(value, timezone.utc)
+                value = datetime.fromisoformat(value).isoformat()
             except:
                 raise InvalidDatetimeError("DateTime got invalid value")
         
         super().__init__(value)
-
-    @property
-    def value(self) -> float:
-        return self._value.timestamp()
