@@ -11,7 +11,13 @@ from src.modules.org.domain.factories.organization_factory import OrgFactory
 from src.modules.org.domain.value_objects.id import ID
 from src.modules.org.domain.value_objects.name import Name
 from src.modules.org.domain.value_objects.role import Role
-from src.modules.org.exceptions import OrgNotFoundError, NoChangesError
+from src.modules.org.exceptions import (
+    OrgNotFoundError,
+    NoChangesError,
+    MemberDuplicateError,
+    MemberNotFoundError,
+)
+from src.modules.auth.exceptions import UserNotFoundError
 
 
 class TestOrgRepo:
@@ -230,3 +236,126 @@ class TestOrgRepo:
         members = await repo.get_members(org_entity.id)
 
         assert members == []
+
+    async def test_add_member_successfully(self, repo, org_entity, user_seed):
+        await repo.add_member(org_entity.id, ID(user_seed.public_id), Role("member"))
+
+        role = await repo.get_user_role(org_entity.id, ID(user_seed.public_id))
+        assert role is not None
+        assert role.value == "member"
+
+        # Verify member appears in get_members
+        members = await repo.get_members(org_entity.id)
+        assert len(members) == 1
+        assert members[0]["user_id"] == user_seed.public_id
+        assert members[0]["role"] == "member"
+
+    async def test_add_member_already_exists(self, repo, org_entity, user_seed):
+        await repo.add_member(org_entity.id, ID(user_seed.public_id), Role("member"))
+        with pytest.raises(MemberDuplicateError):
+            await repo.add_member(
+                org_entity.id, ID(user_seed.public_id), Role("member")
+            )
+
+    async def test_add_member_org_not_found(self, repo, non_existent_org_id, user_seed):
+        with pytest.raises(OrgNotFoundError):
+            await repo.add_member(
+                non_existent_org_id, ID(user_seed.public_id), Role("member")
+            )
+
+    async def test_add_member_user_not_found(self, repo, org_entity):
+        with pytest.raises(UserNotFoundError):
+            await repo.add_member(org_entity.id, ID(), Role("member"))
+
+    async def test_remove_member_successfully(self, repo, org_entity, user_seed):
+        await repo.add_member(org_entity.id, ID(user_seed.public_id), Role("member"))
+
+        await repo.remove_member(org_entity.id, ID(user_seed.public_id))
+
+        role = await repo.get_user_role(org_entity.id, ID(user_seed.public_id))
+        assert role is None
+
+        # Verify member is removed from get_members
+        members = await repo.get_members(org_entity.id)
+        assert len(members) == 0
+
+    async def test_remove_member_not_found(self, repo, org_entity, user_seed):
+        with pytest.raises(MemberNotFoundError):
+            await repo.remove_member(org_entity.id, ID(user_seed.public_id))
+
+    async def test_remove_member_org_not_found(self, repo, user_seed):
+        with pytest.raises(MemberNotFoundError):
+            await repo.remove_member(ID(), ID(user_seed.public_id))
+
+    async def test_get_user_role_returns_none_for_non_member(
+        self, repo, org_entity, user_seed
+    ):
+        role = await repo.get_user_role(org_entity.id, ID(user_seed.public_id))
+        assert role is None
+
+    async def test_get_user_role_returns_role_for_member(
+        self, repo, org_entity, user_seed
+    ):
+        await repo.add_member(org_entity.id, ID(user_seed.public_id), Role("member"))
+        role = await repo.get_user_role(org_entity.id, ID(user_seed.public_id))
+        assert role is not None
+        assert role.value == "member"
+
+    async def test_change_user_role_successfully(self, repo, org_entity, user_seed):
+        await repo.add_member(org_entity.id, ID(user_seed.public_id), Role("member"))
+
+        await repo.change_user_role(
+            org_entity.id, ID(user_seed.public_id), Role("admin")
+        )
+
+        role = await repo.get_user_role(org_entity.id, ID(user_seed.public_id))
+        assert role.value == "admin"
+
+        # Verify role is updated in get_members
+        members = await repo.get_members(org_entity.id)
+        assert members[0]["role"] == "admin"
+
+    async def test_change_user_role_member_not_found(self, repo, org_entity, user_seed):
+        with pytest.raises(MemberNotFoundError):
+            await repo.change_user_role(
+                org_entity.id, ID(user_seed.public_id), Role("admin")
+            )
+
+    async def test_change_user_role_org_not_found(
+        self, repo, non_existent_org_id, user_seed
+    ):
+        with pytest.raises(MemberNotFoundError):
+            await repo.change_user_role(
+                non_existent_org_id, ID(user_seed.public_id), Role("admin")
+            )
+
+    async def test_add_multiple_members_to_org(
+        self, repo, org_entity, user_seed, second_user_seed
+    ):
+        await repo.add_member(org_entity.id, ID(user_seed.public_id), Role("owner"))
+        await repo.add_member(
+            org_entity.id, ID(second_user_seed.public_id), Role("member")
+        )
+
+        members = await repo.get_members(org_entity.id)
+        assert len(members) == 2
+
+        roles = {m["user_id"]: m["role"] for m in members}
+        assert roles[user_seed.public_id] == "owner"
+        assert roles[second_user_seed.public_id] == "member"
+
+    async def test_same_user_in_different_orgs(
+        self, repo, org_entity, second_org_seed, user_seed
+    ):
+        await repo.add_member(org_entity.id, ID(user_seed.public_id), Role("owner"))
+        await repo.add_member(
+            ID(second_org_seed.public_id), ID(user_seed.public_id), Role("member")
+        )
+
+        role1 = await repo.get_user_role(org_entity.id, ID(user_seed.public_id))
+        role2 = await repo.get_user_role(
+            ID(second_org_seed.public_id), ID(user_seed.public_id)
+        )
+
+        assert role1.value == "owner"
+        assert role2.value == "member"

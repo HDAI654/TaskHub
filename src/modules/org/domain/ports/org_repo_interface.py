@@ -40,3 +40,23 @@ class IOrgRepository(ABC):
         self, org_id: ID, role: Role | None = None
     ) -> list[dict[str, Any]]:
         pass
+
+    @abstractmethod
+    async def add_member(self, org_id: ID, user_id: ID, role: Role) -> None:
+        """Add a user to organization with specified role."""
+        pass
+
+    @abstractmethod
+    async def remove_member(self, org_id: ID, user_id: ID) -> None:
+        """Remove a user from organization."""
+        pass
+
+    @abstractmethod
+    async def get_user_role(self, org_id: ID, user_id: ID) -> Role | None:
+        """Get user's role in organization. Returns None if user is not a member."""
+        pass
+
+    @abstractmethod
+    async def change_user_role(self, org_id: ID, user_id: ID, new_role: Role) -> None:
+        """Change user's role in organization."""
+        pass

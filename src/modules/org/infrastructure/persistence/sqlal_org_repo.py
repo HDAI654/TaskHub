@@ -18,10 +18,13 @@ from src.modules.org.domain.factories.organization_factory import OrgFactory
 from src.modules.org.exceptions import (
     OrgNotFoundError,
     NoChangesError,
+    MemberDuplicateError,
+    MemberNotFoundError,
     DatabaseOperationError,
     DatabaseConnectionError,
     DatabaseTimeoutError,
 )
+from src.modules.auth.exceptions import UserNotFoundError
 from src.modules.auth.infrastructure.persistence.models import UserModel
 from src.modules.org.infrastructure.persistence.models import OrgMemberModel
 
@@ -194,6 +197,140 @@ class SQLAL_OrgRepository(IOrgRepository):
             org_id.value,
         )
         return members
+
+    async def add_member(self, org_id: ID, user_id: ID, role: Role) -> None:
+        logger.info(
+            "Adding member to organization: org_id=%s, user_id=%s, role=%s",
+            org_id.value,
+            user_id.value,
+            role.value,
+        )
+
+        # Check if organization exists
+        org_exists = await self.exists_by_id(org_id)
+        if not org_exists:
+            raise OrgNotFoundError(f"Organization with id {org_id.value!r} not found")
+
+        # Check if user exists
+        user_result = await self._execute_db_operation(
+            "check_user_exists",
+            self._session.execute,
+            select(UserModel).where(UserModel.public_id == user_id.value),
+        )
+        if not user_result.scalar_one_or_none():
+            raise UserNotFoundError(f"User with id {user_id.value!r} not found")
+
+        # Check if already a member
+        existing_role = await self.get_user_role(org_id, user_id)
+        if existing_role is not None:
+            raise MemberDuplicateError(
+                f"User {user_id.value} is already a member of organization {org_id.value}"
+            )
+
+        member = OrgMemberModel(
+            user_id=user_id.value,
+            organization_id=org_id.value,
+            role=role.value,
+        )
+
+        self._session.add(member)
+        await self._execute_db_operation("add_member", self._session.flush)
+
+        logger.info(
+            "Member added successfully: org_id=%s, user_id=%s",
+            org_id.value,
+            user_id.value,
+        )
+
+    async def remove_member(self, org_id: ID, user_id: ID) -> None:
+        logger.info(
+            "Removing member from organization: org_id=%s, user_id=%s",
+            org_id.value,
+            user_id.value,
+        )
+
+        result = await self._execute_db_operation(
+            "remove_member",
+            self._session.execute,
+            delete(OrgMemberModel).where(
+                OrgMemberModel.organization_id == org_id.value,
+                OrgMemberModel.user_id == user_id.value,
+            ),
+        )
+
+        if result.rowcount == 0:
+            logger.debug(
+                "Member not found: org_id=%s, user_id=%s", org_id.value, user_id.value
+            )
+            raise MemberNotFoundError(
+                f"User {user_id.value} is not a member of organization {org_id.value}"
+            )
+
+        await self._execute_db_operation("remove_member", self._session.flush)
+
+        logger.info(
+            "Member removed successfully: org_id=%s, user_id=%s",
+            org_id.value,
+            user_id.value,
+        )
+
+    async def get_user_role(self, org_id: ID, user_id: ID) -> Role | None:
+        logger.debug(
+            "Getting user role: org_id=%s, user_id=%s", org_id.value, user_id.value
+        )
+
+        result = await self._execute_db_operation(
+            "get_user_role",
+            self._session.execute,
+            select(OrgMemberModel.role).where(
+                OrgMemberModel.organization_id == org_id.value,
+                OrgMemberModel.user_id == user_id.value,
+            ),
+        )
+
+        role_value = result.scalar_one_or_none()
+        if role_value is None:
+            return None
+
+        return Role(role_value)
+
+    async def change_user_role(self, org_id: ID, user_id: ID, new_role: Role) -> None:
+        logger.info(
+            "Changing user role: org_id=%s, user_id=%s, new_role=%s",
+            org_id.value,
+            user_id.value,
+            new_role.value,
+        )
+
+        result = await self._execute_db_operation(
+            "change_user_role",
+            self._session.execute,
+            update(OrgMemberModel)
+            .where(
+                OrgMemberModel.organization_id == org_id.value,
+                OrgMemberModel.user_id == user_id.value,
+            )
+            .values(role=new_role.value)
+            .returning(OrgMemberModel.id),
+        )
+
+        updated_id = result.scalar_one_or_none()
+        if updated_id is None:
+            logger.debug(
+                "Member not found: org_id=%s, user_id=%s", org_id.value, user_id.value
+            )
+            raise MemberNotFoundError(
+                f"User {user_id.value} is not a member of organization {org_id.value}"
+            )
+
+        await self._execute_db_operation("change_user_role", self._session.flush)
+
+        logger.info(
+            "User role changed successfully: org_id=%s, user_id=%s, new_role=%s",
+            org_id.value,
+            user_id.value,
+            new_role.value,
+        )
 
     def _to_entity(self, org_model: OrgModel) -> OrgEntity:
         return OrgFactory.create(

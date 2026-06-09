@@ -42,3 +42,15 @@ class OrgNotFoundError(OrgException):
     """Organization not found in database"""
 
     pass
+
+
+class MemberDuplicateError(OrgException):
+    """Member with same unique field exists"""
+
+    pass
+
+
+class MemberNotFoundError(OrgException):
+    """Member not found in database"""
+
+    pass
