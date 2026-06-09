@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from src.modules.org.domain.value_objects.datetime import DateTime
 from src.modules.org.exceptions import InvalidDatetimeError
 
+
 class TestDateTime:
     def test_none_datetime_auto_use_current_time(self):
         dt = DateTime(None)

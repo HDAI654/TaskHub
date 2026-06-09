@@ -9,17 +9,17 @@ class TestOrgEntity:
         org = OrgEntity(
             id=ID("MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"),
             name=Name("Name"),
-            created_at=DateTime()
+            created_at=DateTime(),
         )
         org2 = OrgEntity(
             id=ID("MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"),
             name=Name("DifferentName"),
-            created_at=DateTime()
+            created_at=DateTime(),
         )
         org3 = OrgEntity(
             id=ID("MyDifferentIDDDDDDDDDDDDDDDDDDDDDDDD"),
             name=Name("Name"),
-            created_at=DateTime()
+            created_at=DateTime(),
         )
 
         assert org == org2

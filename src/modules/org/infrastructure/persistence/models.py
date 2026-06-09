@@ -35,8 +35,12 @@ class OrgMemberModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, ForeignKey("users.public_id"), nullable=False, index=True)
-    organization_id = Column(String, ForeignKey("organizations.public_id"), nullable=False, index=True)
-    role = Column(Enum("owner", "admin", "member", "viewer", name="role_enum"), nullable=False)
+    organization_id = Column(
+        String, ForeignKey("organizations.public_id"), nullable=False, index=True
+    )
+    role = Column(
+        Enum("owner", "admin", "member", "viewer", name="role_enum"), nullable=False
+    )
     joined_at = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -44,7 +48,6 @@ class OrgMemberModel(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "organization_id", name="uq_user_organization"),
     )
-
 
     def __repr__(self):
         return f"<OrgMember(user_id={self.user_id}, org_id={self.organization_id}, role='{self.role}')>"

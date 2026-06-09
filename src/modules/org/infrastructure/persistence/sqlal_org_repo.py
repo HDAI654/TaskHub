@@ -34,7 +34,9 @@ class SQLAL_OrgRepository(IOrgRepository):
         self._session = session
 
     async def add(self, org: OrgEntity) -> None:
-        logger.info("Adding organization: public_id=%s, name=%s", org.id.value, org.name.value)
+        logger.info(
+            "Adding organization: public_id=%s, name=%s", org.id.value, org.name.value
+        )
 
         org_model = OrgModel(
             public_id=org.id.value,
@@ -47,7 +49,11 @@ class SQLAL_OrgRepository(IOrgRepository):
         logger.info("Organization added successfully: public_id=%s", org.id.value)
 
     async def update(self, org_id: ID, new_name: Name | None = None) -> None:
-        logger.info("Updating organization: public_id=%s, new_name=%s", org_id.value, new_name.value if new_name else None)
+        logger.info(
+            "Updating organization: public_id=%s, new_name=%s",
+            org_id.value,
+            new_name.value if new_name else None,
+        )
 
         update_data = {}
         if new_name is not None:
@@ -142,11 +148,22 @@ class SQLAL_OrgRepository(IOrgRepository):
         )
         return result.scalar()
 
-    async def get_members(self, org_id: ID, role: Role | None = None) -> list[dict[str, Any]]:
-        logger.info("Getting members for organization: public_id=%s, role_filter=%s", org_id.value, role)
+    async def get_members(
+        self, org_id: ID, role: Role | None = None
+    ) -> list[dict[str, Any]]:
+        logger.info(
+            "Getting members for organization: public_id=%s, role_filter=%s",
+            org_id.value,
+            role,
+        )
 
         query = (
-            select(UserModel.public_id, UserModel.email, OrgMemberModel.role, OrgMemberModel.joined_at)
+            select(
+                UserModel.public_id,
+                UserModel.email,
+                OrgMemberModel.role,
+                OrgMemberModel.joined_at,
+            )
             .join(OrgMemberModel, UserModel.public_id == OrgMemberModel.user_id)
             .where(OrgMemberModel.organization_id == org_id.value)
         )
@@ -162,14 +179,20 @@ class SQLAL_OrgRepository(IOrgRepository):
 
         members = []
         for row in result:
-            members.append({
-                "user_id": row.public_id,
-                "email": row.email,
-                "role": row.role,
-                "joined_at": row.joined_at.isoformat() if row.joined_at else None,
-            })
+            members.append(
+                {
+                    "user_id": row.public_id,
+                    "email": row.email,
+                    "role": row.role,
+                    "joined_at": row.joined_at.isoformat() if row.joined_at else None,
+                }
+            )
 
-        logger.info("Found %d members for organization: public_id=%s", len(members), org_id.value)
+        logger.info(
+            "Found %d members for organization: public_id=%s",
+            len(members),
+            org_id.value,
+        )
         return members
 
     def _to_entity(self, org_model: OrgModel) -> OrgEntity:

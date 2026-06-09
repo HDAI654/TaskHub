@@ -8,5 +8,6 @@ class InvalidDatetimeError(DomainError):
 class InvalidNameError(DomainError):
     pass
 
+
 class InvalidRoleError(DomainError):
     pass

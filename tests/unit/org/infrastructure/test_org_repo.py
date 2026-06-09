@@ -4,19 +4,22 @@ from src.modules.core.database import get_async_session, engine
 from src.modules.org.infrastructure.persistence.models import OrgModel, OrgMemberModel
 from src.modules.core.database import Base
 from src.modules.auth.infrastructure.persistence.models import UserModel
-from src.modules.org.infrastructure.persistence.sqlal_org_repo import SQLAL_OrgRepository
+from src.modules.org.infrastructure.persistence.sqlal_org_repo import (
+    SQLAL_OrgRepository,
+)
 from src.modules.org.domain.factories.organization_factory import OrgFactory
 from src.modules.org.domain.value_objects.id import ID
 from src.modules.org.domain.value_objects.name import Name
 from src.modules.org.domain.value_objects.role import Role
 from src.modules.org.exceptions import OrgNotFoundError, NoChangesError
 
+
 class TestOrgRepo:
     @pytest.fixture(autouse=True)
     async def setup_db(self):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        
+
         yield
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
@@ -172,7 +175,9 @@ class TestOrgRepo:
         with pytest.raises(OrgNotFoundError):
             await repo.delete(non_existent_org_id)
 
-    async def test_get_members_no_filter(self, repo, org_entity, org_seed, user_seed, second_user_seed, db_session):
+    async def test_get_members_no_filter(
+        self, repo, org_entity, org_seed, user_seed, second_user_seed, db_session
+    ):
         member1 = OrgMemberModel(
             user_id=user_seed.public_id,
             organization_id=org_seed.public_id,
@@ -192,7 +197,9 @@ class TestOrgRepo:
         assert members[0]["user_id"] == user_seed.public_id
         assert members[1]["user_id"] == second_user_seed.public_id
 
-    async def test_get_members_with_role_filter(self, repo, org_entity, org_seed, user_seed, second_user_seed, db_session):
+    async def test_get_members_with_role_filter(
+        self, repo, org_entity, org_seed, user_seed, second_user_seed, db_session
+    ):
         member1 = OrgMemberModel(
             user_id=user_seed.public_id,
             organization_id=org_seed.public_id,
@@ -217,7 +224,9 @@ class TestOrgRepo:
         assert members[0]["user_id"] == second_user_seed.public_id
         assert members[0]["role"] == "member"
 
-    async def test_get_members_returns_empty_list_for_no_members(self, repo, org_entity):
+    async def test_get_members_returns_empty_list_for_no_members(
+        self, repo, org_entity
+    ):
         members = await repo.get_members(org_entity.id)
 
         assert members == []

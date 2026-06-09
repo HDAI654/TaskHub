@@ -23,4 +23,4 @@ class TestName:
 
     def test_long_name(self):
         with pytest.raises(InvalidNameError):
-            Name("Myname"+"ABC"*20)
+            Name("Myname" + "ABC" * 20)

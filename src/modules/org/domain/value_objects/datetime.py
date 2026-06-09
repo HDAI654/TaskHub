@@ -14,12 +14,10 @@ class DateTime(BaseVO[str]):
                 )
             value = value.strip()
             if not value:
-                raise InvalidDatetimeError(
-                    f"DateTime must be a non-empty string"
-                )
+                raise InvalidDatetimeError(f"DateTime must be a non-empty string")
             try:
                 value = datetime.fromisoformat(value).isoformat()
             except:
                 raise InvalidDatetimeError("DateTime got invalid value")
-        
+
         super().__init__(value)

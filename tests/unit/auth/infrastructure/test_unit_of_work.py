@@ -69,7 +69,7 @@ class TestUnitOfWork:
         assert saved_user.id.value == sample_user.id.value
         assert saved_user.email.value == sample_user.email.value
 
-    async def test_commit_rollback_on_error(self, uow, sample_user, mocker): 
+    async def test_commit_rollback_on_error(self, uow, sample_user, mocker):
         mocker.patch.object(
             uow._session,
             "flush",
@@ -78,23 +78,22 @@ class TestUnitOfWork:
 
         # Add a user
         await uow.users.add(sample_user)
-        
+
         mocker.patch.object(
             uow._session,
             "commit",
-            side_effect=OperationalError("statement", "params", "orig")
+            side_effect=OperationalError("statement", "params", "orig"),
         )
 
         # Mock rollback to track call
         mock_rollback = mocker.patch.object(uow._session, "rollback")
-        
+
         with pytest.raises(DatabaseConnectionError):
             await uow.commit()
-        
+
         # Rollback should have been called
         uow._session.rollback.assert_called_once()
-            
-        
+
         # Verify the user wasn't saved
         assert await uow.users.exists_by_id(sample_user.id) is False
 

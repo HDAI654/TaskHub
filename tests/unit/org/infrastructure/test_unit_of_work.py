@@ -1,7 +1,9 @@
 import pytest
 from sqlalchemy.exc import OperationalError, TimeoutError, SQLAlchemyError
 from src.modules.core.database import engine
-from src.modules.org.infrastructure.persistence.sqlal_unit_of_work import SQLAL_UnitOfWork
+from src.modules.org.infrastructure.persistence.sqlal_unit_of_work import (
+    SQLAL_UnitOfWork,
+)
 from src.modules.core.database import Base
 from src.modules.org.domain.entities.organization import OrgEntity
 from src.modules.org.domain.value_objects.id import ID
@@ -26,6 +28,7 @@ class TestUnitOfWork:
     @pytest.fixture
     async def db_session(self):
         from src.modules.core.database import get_async_session
+
         async for session in get_async_session():
             yield session
             await session.rollback()
@@ -63,7 +66,7 @@ class TestUnitOfWork:
         mocker.patch.object(
             uow._session,
             "commit",
-            side_effect=OperationalError("statement", "params", "orig")
+            side_effect=OperationalError("statement", "params", "orig"),
         )
 
         mock_rollback = mocker.patch.object(uow._session, "rollback")

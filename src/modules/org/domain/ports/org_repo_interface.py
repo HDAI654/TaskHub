@@ -36,5 +36,7 @@ class IOrgRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_members(self, org_id: ID, role: Role | None = None) -> list[dict[str, Any]]:
+    async def get_members(
+        self, org_id: ID, role: Role | None = None
+    ) -> list[dict[str, Any]]:
         pass
