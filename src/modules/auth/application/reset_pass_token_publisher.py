@@ -46,7 +46,8 @@ class ResetPassTokenPublishService:
 
         # check version of token
         current_version = await self.token_repo.get_user_version(user_id=user.id)
-        if payload["ver"] != current_version:
+        is_token_blocked = await self.token_repo.is_token_blocked(ID(payload["jti"]))
+        if payload["ver"] != current_version or is_token_blocked:
             raise InvalidToken("Access token is expired")
 
         token = IDGenerator.generate()

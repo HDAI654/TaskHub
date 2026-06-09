@@ -46,9 +46,15 @@ class LogoutService:
 
         # check version of token
         current_version = await self.token_repo.get_user_version(user_id=user.id)
-        if access_payload["ver"] != current_version:
+        is_access_token_blocked = await self.token_repo.is_token_blocked(
+            ID(access_payload["jti"])
+        )
+        is_refresh_token_blocked = await self.token_repo.is_token_blocked(
+            ID(refresh_payload["jti"])
+        )
+        if access_payload["ver"] != current_version or is_access_token_blocked:
             raise InvalidToken("Access token is expired")
-        if refresh_payload["ver"] != current_version:
+        if refresh_payload["ver"] != current_version or is_refresh_token_blocked:
             raise InvalidToken("Refresh token is expired")
 
         # Add tokens to blacklist
