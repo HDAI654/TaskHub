@@ -270,6 +270,34 @@ class TestAuthE2E:
         )
         assert response.status_code == 200
 
+    async def test_invite_new_user(self, client, user_data):
+        email = user_data["email"]
+        password = user_data["password"]
+
+        # ===== Register =====
+        response = await client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": email,
+                "password": password,
+            },
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert "access_token" in data
+        assert "refresh_token" in data
+        access_token = data["access_token"]
+
+        # ===== Invite =====
+        response = await client.post(
+            "/api/v1/auth/invite",
+            json={
+                "access_token": access_token,
+                "email": "new_user_email@gamil.com",
+            },
+        )
+        assert response.status_code == 200
+
     # ========== Error Cases ==========
     async def test_register_with_existing_email(self, client, user_data):
         """Register with already used email should fail"""

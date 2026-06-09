@@ -28,6 +28,9 @@ from src.modules.auth.presentation.api.v1.logout import (
 from src.modules.auth.presentation.api.v1.delete_account import (
     RATE_LIMIT_MAX_REQUESTS as DEL_ACC_RATE_LIMIT_MAX_REQUESTS,
 )
+from src.modules.auth.presentation.api.v1.invite_new_user import (
+    RATE_LIMIT_MAX_REQUESTS as INVITE_RATE_LIMIT_MAX_REQUESTS,
+)
 
 
 class TestAuthRateLimit:
@@ -299,6 +302,28 @@ class TestAuthRateLimit:
             "/api/v1/auth/delete-account",
             json={
                 "access_token": "fake_token:-)",
+            },
+        )
+        assert response.status_code == 429
+        assert "Rate limit exceeded" in response.json()["detail"]
+
+    async def test_rate_limiting_on_invite(self, client, user_data):
+        for i in range(INVITE_RATE_LIMIT_MAX_REQUESTS):
+            response = await client.post(
+                "/api/v1/auth/invite",
+                json={
+                    "access_token": "fake_token:-)",
+                    "email": "new_user_email@gamil.com",
+                },
+            )
+            assert response.status_code != 429
+
+        # Next request should be rate limited
+        response = await client.post(
+            "/api/v1/auth/invite",
+            json={
+                "access_token": "fake_token:-)",
+                "email": "new_user_email@gamil.com",
             },
         )
         assert response.status_code == 429

@@ -37,6 +37,7 @@ from src.modules.auth.application.reset_pass_token_publisher import (
 from src.modules.auth.application.reset_password import ResetPassService
 from src.modules.auth.application.token_rotation import TokenRotationService
 from src.modules.auth.application.del_account import DelAccountService
+from src.modules.auth.application.invite import InviteService
 
 # ========== Base Dependencies ==========
 
@@ -151,3 +152,11 @@ async def get_del_account_service(
     jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
 ) -> DelAccountService:
     return DelAccountService(uow, token_repo, jwt_decoder)
+
+
+async def get_invite_service(
+    uow: IUnitOfWork = Depends(get_uow),
+    token_repo: ITokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> InviteService:
+    return InviteService(uow, token_repo, jwt_decoder)

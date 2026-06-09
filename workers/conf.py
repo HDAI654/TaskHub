@@ -15,6 +15,10 @@ class Config:
     # Cache
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
 
+    # URLs
     RESET_PASSWORD_URL: str = os.getenv(
         "RESET_PASSWORD_URL", "http://localhost:8000/api/v1/auth/reset-password"
+    )
+    SIGNUP_URL: str = os.getenv(
+        "SIGNUP_URL", "http://localhost:8000/api/v1/auth/register-with-token"
     )

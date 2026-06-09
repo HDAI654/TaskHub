@@ -5,6 +5,7 @@ from src.modules.auth.presentation.api.v1.delete_account import (
 from src.modules.auth.presentation.api.v1.forget_password import (
     router as forget_password_router,
 )
+from src.modules.auth.presentation.api.v1.invite_new_user import router as invite_router
 from src.modules.auth.presentation.api.v1.login import router as login_router
 from src.modules.auth.presentation.api.v1.logout import router as logout_router
 from src.modules.auth.presentation.api.v1.refresh import router as refresh_router
@@ -23,6 +24,7 @@ router = APIRouter(
 
 router.include_router(delete_account_router)
 router.include_router(forget_password_router)
+router.include_router(invite_router)
 router.include_router(login_router)
 router.include_router(logout_router)
 router.include_router(refresh_router)

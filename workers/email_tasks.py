@@ -63,3 +63,30 @@ def send_password_reset_email(
     TaskHub Team
     """
     return send_email_task(to_email, subject, body.strip())
+
+
+@celery_app.task(name="send_invite_email")
+def send_invite_email(
+    to_email: str,
+) -> dict:
+    """Send organization invitation email for new user signup"""
+
+    signup_link = f"{Config.SIGNUP_URL}?email={to_email}"
+
+    subject = f"You're invited to join {Config.APP_NAME}"
+
+    body = f"""
+        Hello,
+
+        You're invited to join {Config.APP_NAME}
+
+        {Config.APP_NAME} is a team task management platform where you can collaborate on projects and track tasks.
+
+        **Click the link below to create your account and join:**
+
+        {signup_link}
+
+        Best regards,
+        {Config.APP_NAME} Team
+    """
+    return send_email_task(to_email, subject, body.strip())
