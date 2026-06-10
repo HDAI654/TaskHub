@@ -86,6 +86,13 @@ class ProjectNotFoundError(InfrastructureError):
     pass
 
 
+# Board Exceptions
+class BoardNotFoundError(Exception):
+    """Board not found in database"""
+
+    pass
+
+
 # ===== Cache Exceptions =====
 class CacheError(Exception):
     """Base exception for all cache infrastructure failures"""

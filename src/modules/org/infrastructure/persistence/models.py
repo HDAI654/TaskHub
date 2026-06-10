@@ -72,3 +72,23 @@ class ProjectModel(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+
+
+class BoardModel(Base):
+    __tablename__ = "boards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    public_id = Column(String(36), unique=True, nullable=False, index=True)
+    project_id = Column(
+        String, ForeignKey("projects.public_id"), nullable=False, index=True
+    )
+    name = Column(String(50), nullable=False, index=True)
+    description = Column(Text, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )

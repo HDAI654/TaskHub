@@ -8,12 +8,16 @@ from src.modules.org.domain.ports.org_repo_interface import (
 from src.modules.org.domain.ports.project_repo_interface import (
     IProjectRepository,
 )
+from src.modules.org.domain.ports.board_repo_interface import (
+    IBoardRepository,
+)
 
 
 class IUnitOfWork(ABC):
     users: IUserRepository
     orgs: IOrgRepository
     projects: IProjectRepository
+    boards: IBoardRepository
 
     @abstractmethod
     async def commit(self) -> None:
