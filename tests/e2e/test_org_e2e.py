@@ -363,9 +363,6 @@ class TestOrgE2E:
         )
         assert response.status_code == 200
 
-        # Now member (admin) can add another user (but we don't have third user, so just check permission)
-        # For now, we just verify admin can add - we need third user
-        # Register third user
         third_user_data = {
             "email": "third@example.com",
             "password": "StrongP@ssw0rd789",
