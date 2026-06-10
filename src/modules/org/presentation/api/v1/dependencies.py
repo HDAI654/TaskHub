@@ -18,6 +18,12 @@ from src.modules.org.application.change_user_role import ChangeUserRoleService
 from src.modules.org.application.get_user_orgs import GetUserOrgsService
 from src.modules.org.application.get_org_members import GetOrgMembersService
 
+from src.modules.org.application.create_project import CreateProjectService
+from src.modules.org.application.update_project import UpdateProjectService
+from src.modules.org.application.delete_project import DeleteProjectService
+from src.modules.org.application.get_project import GetProjectService
+from src.modules.org.application.get_org_projects import GetOrgProjectsService
+
 
 async def get_uow(db: AsyncSession = Depends(get_async_session)) -> SQLAL_UnitOfWork:
     return SQLAL_UnitOfWork(db)
@@ -33,6 +39,7 @@ async def get_jwt_decoder() -> JWTDecoder:
     return JWTDecoder()
 
 
+# ===== org =====
 async def get_create_org_service(
     uow: SQLAL_UnitOfWork = Depends(get_uow),
     token_repo: RedisTokenRepository = Depends(get_token_repo),
@@ -103,3 +110,44 @@ async def get_get_org_members_service(
     jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
 ) -> GetOrgMembersService:
     return GetOrgMembersService(uow, token_repo, jwt_decoder)
+
+
+# ===== prj =====
+async def get_create_project_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> CreateProjectService:
+    return CreateProjectService(uow, token_repo, jwt_decoder)
+
+
+async def get_update_project_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> UpdateProjectService:
+    return UpdateProjectService(uow, token_repo, jwt_decoder)
+
+
+async def get_delete_project_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> DeleteProjectService:
+    return DeleteProjectService(uow, token_repo, jwt_decoder)
+
+
+async def get_get_project_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> GetProjectService:
+    return GetProjectService(uow, token_repo, jwt_decoder)
+
+
+async def get_get_org_projects_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> GetOrgProjectsService:
+    return GetOrgProjectsService(uow, token_repo, jwt_decoder)
