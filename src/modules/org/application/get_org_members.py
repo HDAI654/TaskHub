@@ -7,6 +7,7 @@ from src.modules.core.exceptions import (
     InvalidToken,
     UserNotFoundError,
     OrgNotFoundError,
+    InvalidIDError,
 )
 from src.modules.org.domain.value_objects.role import Role
 
@@ -50,7 +51,10 @@ class GetOrgMembersService:
             raise InvalidToken("Access token is expired")
 
         # Check organization exists
-        org_id_vo = ID(org_id)
+        try:
+            org_id_vo = ID(org_id)
+        except InvalidIDError:
+            raise OrgNotFoundError()
         if not await self.uow.orgs.exists_by_id(org_id_vo):
             raise OrgNotFoundError(f"Organization with id {org_id} not found")
 

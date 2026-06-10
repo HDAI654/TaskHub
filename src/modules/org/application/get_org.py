@@ -3,7 +3,12 @@ from src.modules.org.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.org.domain.value_objects.id import ID
-from src.modules.core.exceptions import InvalidToken, UserNotFoundError
+from src.modules.core.exceptions import (
+    InvalidToken,
+    UserNotFoundError,
+    InvalidIDError,
+    OrgNotFoundError,
+)
 from src.modules.org.domain.entities.organization import OrgEntity
 
 logger = logging.getLogger(__name__)
@@ -42,7 +47,10 @@ class GetOrgService:
             raise InvalidToken("Access token is expired")
 
         # Get organization
-        org_id_vo = ID(org_id)
+        try:
+            org_id_vo = ID(org_id)
+        except InvalidIDError:
+            raise OrgNotFoundError()
         org = await self.uow.orgs.get_by_id(org_id_vo)
 
         logger.info("Organization retrieved successfully: org_id=%s", org_id)

@@ -7,6 +7,7 @@ from src.modules.core.redis_client import close_redis_client
 import logging
 from src.modules.core.conf import Config
 from src.modules.auth.presentation.api.v1.router import router as router_v1_auth
+from src.modules.org.presentation.api.v1.router import router as router_v1_org
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -34,3 +35,4 @@ async def read_root():
 
 
 app.include_router(router_v1_auth)
+app.include_router(router_v1_org)

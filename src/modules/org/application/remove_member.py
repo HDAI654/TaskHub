@@ -9,6 +9,7 @@ from src.modules.core.exceptions import (
     OrgNotFoundError,
     PermissionDenied,
     MemberNotFoundError,
+    InvalidIDError,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,7 +56,10 @@ class RemoveMemberService:
             raise InvalidToken("Access token is expired")
 
         # Check organization exists
-        org_id_vo = ID(org_id)
+        try:
+            org_id_vo = ID(org_id)
+        except InvalidIDError:
+            raise OrgNotFoundError()
         if not await self.uow.orgs.exists_by_id(org_id_vo):
             raise OrgNotFoundError(f"Organization with id {org_id} not found")
 
