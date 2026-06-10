@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timezone
 from src.modules.org.domain.value_objects.datetime import DateTime
-from src.modules.org.exceptions import InvalidDatetimeError
+from src.modules.core.exceptions import InvalidDatetimeError
 
 
 class TestDateTime:

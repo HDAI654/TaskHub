@@ -14,7 +14,7 @@ from src.modules.auth.application.login import LoginService
 from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.auth.domain.factories.user_factory import UserFactory
-from src.modules.auth.exceptions import InvalidEmailOrPassword
+from src.modules.core.exceptions import InvalidEmailOrPassword
 
 
 class TestLogin:

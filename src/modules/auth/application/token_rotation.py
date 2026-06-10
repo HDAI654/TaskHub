@@ -3,7 +3,7 @@ from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
 from src.modules.auth.domain.value_objects.id import ID
-from src.modules.auth.exceptions import UserNotFoundError, InvalidToken
+from src.modules.core.exceptions import UserNotFoundError, InvalidToken
 import logging
 
 logger = logging.getLogger(__name__)

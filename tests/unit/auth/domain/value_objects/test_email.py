@@ -1,6 +1,6 @@
 import pytest
 from src.modules.auth.domain.value_objects.email import Email
-from src.modules.auth.exceptions import InvalidEmailError
+from src.modules.core.exceptions import InvalidEmailError
 
 
 class TestEmail:

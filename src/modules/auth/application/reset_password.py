@@ -1,4 +1,4 @@
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     InvalidToken,
     UserNotFoundError,
     PermissionDenied,

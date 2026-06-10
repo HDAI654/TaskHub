@@ -1,5 +1,5 @@
 import bcrypt
-from src.modules.auth.exceptions import PasswordHasherError
+from src.modules.core.exceptions import PasswordHasherError
 import logging
 
 logger = logging.getLogger(__name__)

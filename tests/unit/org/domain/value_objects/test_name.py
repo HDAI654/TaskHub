@@ -1,6 +1,6 @@
 import pytest
 from src.modules.org.domain.value_objects.name import Name
-from src.modules.org.exceptions import InvalidNameError
+from src.modules.core.exceptions import InvalidNameError
 
 
 class TestName:

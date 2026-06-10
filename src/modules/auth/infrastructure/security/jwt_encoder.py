@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import jwt
-from src.modules.auth.exceptions import TokenCreationError
+from src.modules.core.exceptions import TokenCreationError
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.core.conf import Config
 import logging

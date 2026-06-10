@@ -14,7 +14,7 @@ from src.modules.auth.infrastructure.cache.redis_token_repo import RedisTokenRep
 from src.modules.core.database import Base
 from src.modules.core.database import get_async_session, engine
 from src.modules.auth.domain.factories.user_factory import UserFactory
-from src.modules.auth.exceptions import InvalidToken
+from src.modules.core.exceptions import InvalidToken
 
 
 class TestInvite:

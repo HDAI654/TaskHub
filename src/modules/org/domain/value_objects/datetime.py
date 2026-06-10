@@ -1,6 +1,6 @@
 from src.modules.core.base_vo import BaseVO
 from datetime import datetime, timezone
-from src.modules.org.exceptions import InvalidDatetimeError
+from src.modules.core.exceptions import InvalidDatetimeError
 
 
 class DateTime(BaseVO[str]):

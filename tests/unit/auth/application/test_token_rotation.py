@@ -18,7 +18,7 @@ from src.modules.auth.application.token_rotation import TokenRotationService
 from src.modules.auth.domain.factories.user_factory import UserFactory
 from src.modules.auth.infrastructure.security.password_hasher import PasswordHasher
 from src.modules.core.conf import Config
-from src.modules.auth.exceptions import InvalidToken
+from src.modules.core.exceptions import InvalidToken
 
 
 class TestTokenRotation:

@@ -1,5 +1,7 @@
-from src.modules.core.exceptions import ApplicationError
+class ApplicationError(Exception):
+    """Base application error"""
 
+    pass
 
 class InvalidEmailOrPassword(ApplicationError):
     """Raised when email/password combination is invalid"""

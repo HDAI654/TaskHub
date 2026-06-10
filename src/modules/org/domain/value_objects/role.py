@@ -1,5 +1,5 @@
 from src.modules.core.base_vo import BaseVO
-from src.modules.org.exceptions import InvalidRoleError
+from src.modules.core.exceptions import InvalidRoleError
 
 ACCEPTABLE_ROLES = {"owner", "admin", "member", "viewer"}
 

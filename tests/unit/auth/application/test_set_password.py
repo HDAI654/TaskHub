@@ -13,7 +13,7 @@ from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
 from src.modules.auth.infrastructure.security.password_hasher import PasswordHasher
 from src.modules.auth.domain.factories.user_factory import UserFactory
-from src.modules.auth.exceptions import InvalidOldPassword, InvalidToken
+from src.modules.core.exceptions import InvalidOldPassword, InvalidToken
 
 
 class TestSetPass:

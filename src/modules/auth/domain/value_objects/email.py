@@ -1,6 +1,6 @@
 import re
 from src.modules.core.base_vo import BaseVO
-from src.modules.auth.exceptions import InvalidEmailError
+from src.modules.core.exceptions import InvalidEmailError
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 

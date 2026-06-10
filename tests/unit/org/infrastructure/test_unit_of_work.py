@@ -9,7 +9,7 @@ from src.modules.org.domain.entities.organization import OrgEntity
 from src.modules.org.domain.value_objects.id import ID
 from src.modules.org.domain.value_objects.name import Name
 from src.modules.org.domain.value_objects.datetime import DateTime
-from src.modules.org.exceptions import (
+from src.modules.core.exceptions import (
     DatabaseConnectionError,
 )
 

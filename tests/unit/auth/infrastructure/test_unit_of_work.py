@@ -13,7 +13,7 @@ from src.modules.auth.domain.entities.user import UserEntity
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.auth.domain.value_objects.email import Email
 from src.modules.auth.domain.value_objects.password import HashedPassword
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     DatabaseConnectionError,
 )
 

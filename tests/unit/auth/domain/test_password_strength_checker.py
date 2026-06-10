@@ -1,6 +1,6 @@
 import pytest
 from src.modules.auth.domain.password_strength_checker import PasswordStrengthChecker
-from src.modules.auth.exceptions import WeakPasswordError
+from src.modules.core.exceptions import WeakPasswordError
 
 
 class TestPasswordStrengthChecker:

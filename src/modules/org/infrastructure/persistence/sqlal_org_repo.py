@@ -14,7 +14,7 @@ from src.modules.org.domain.value_objects.name import Name
 from src.modules.org.domain.value_objects.role import Role
 from src.modules.org.infrastructure.persistence.models import OrgModel
 from src.modules.org.domain.factories.organization_factory import OrgFactory
-from src.modules.org.exceptions import (
+from src.modules.core.exceptions import (
     OrgNotFoundError,
     NoChangesError,
     MemberDuplicateError,

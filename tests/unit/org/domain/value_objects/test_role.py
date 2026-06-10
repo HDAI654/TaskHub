@@ -1,6 +1,6 @@
 import pytest
 from src.modules.org.domain.value_objects.role import Role
-from src.modules.org.exceptions import InvalidRoleError
+from src.modules.core.exceptions import InvalidRoleError
 
 
 class TestRole:

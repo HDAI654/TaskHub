@@ -1,4 +1,4 @@
-from src.modules.auth.exceptions import InvalidHashedPasswordError
+from src.modules.core.exceptions import InvalidHashedPasswordError
 
 
 class HashedPassword:

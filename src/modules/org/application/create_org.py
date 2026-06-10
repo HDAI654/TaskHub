@@ -3,12 +3,11 @@ from src.modules.auth.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.domain.value_objects.id import ID
-from src.modules.auth.exceptions import InvalidToken, UserNotFoundError
+from src.modules.core.exceptions import InvalidToken, UserNotFoundError, OrgDuplicateError
 from src.modules.org.domain.value_objects.name import Name
 from src.modules.org.domain.entities.organization import OrgEntity
 from src.modules.org.domain.factories.organization_factory import OrgFactory
 from src.modules.org.domain.value_objects.role import Role
-from src.modules.org.exceptions import OrgDuplicateError, PermissionDenied
 
 logger = logging.getLogger(__name__)
 

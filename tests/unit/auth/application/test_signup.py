@@ -11,7 +11,7 @@ from src.modules.auth.application.signup import SignupService
 from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.auth.domain.factories.user_factory import UserFactory
-from src.modules.auth.exceptions import WeakPasswordError
+from src.modules.core.exceptions import WeakPasswordError
 
 
 class TestSignup:

@@ -5,7 +5,7 @@ from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.auth.domain.value_objects.id import ID
 import fakeredis.aioredis
 from redis.exceptions import RedisError, ConnectionError, TimeoutError
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     CacheConnectionError,
     CacheTimeoutError,
     CacheOperationError,

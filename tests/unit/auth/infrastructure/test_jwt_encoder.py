@@ -2,7 +2,7 @@ import pytest
 from datetime import datetime, timedelta, timezone
 from src.modules.core.conf import Config
 import jwt
-from src.modules.auth.exceptions import TokenCreationError
+from src.modules.core.exceptions import TokenCreationError
 from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
 from src.modules.auth.domain.value_objects.id import ID
 

@@ -5,7 +5,7 @@ from src.modules.auth.domain.ports.password_reset_repo_interface import (
     IPasswordResetRepository,
 )
 from redis.exceptions import RedisError, ConnectionError, TimeoutError
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     CacheConnectionError,
     CacheTimeoutError,
     CacheOperationError,

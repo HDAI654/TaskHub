@@ -1,5 +1,5 @@
 import re
-from src.modules.auth.exceptions import WeakPasswordError
+from src.modules.core.exceptions import WeakPasswordError
 
 
 class PasswordStrengthChecker:

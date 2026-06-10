@@ -6,7 +6,7 @@ from src.modules.core.conf import Config
 from src.modules.auth.domain.value_objects.id import ID
 from src.modules.auth.domain.value_objects.email import Email
 from workers.email_tasks import send_invite_email
-from src.modules.auth.exceptions import InvalidToken, UserNotFoundError
+from src.modules.core.exceptions import InvalidToken, UserNotFoundError
 
 logger = logging.getLogger(__name__)
 

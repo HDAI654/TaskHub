@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from src.modules.core.id_vo import ID
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from redis.exceptions import RedisError, ConnectionError, TimeoutError
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     CacheConnectionError,
     CacheTimeoutError,
     CacheOperationError,

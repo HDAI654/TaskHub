@@ -9,7 +9,7 @@ from sqlalchemy.pool import StaticPool
 from src.modules.auth.infrastructure.persistence.models import UserModel
 from src.modules.core.database import Base
 from src.modules.auth.domain.factories.user_factory import UserFactory
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     UserNotFoundError,
     NoChangesError,
     UserDuplicateError,

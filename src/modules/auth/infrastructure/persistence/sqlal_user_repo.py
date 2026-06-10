@@ -13,7 +13,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 from src.modules.auth.infrastructure.persistence.models import UserModel
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     NoChangesError,
     UserNotFoundError,
     UserDuplicateError,

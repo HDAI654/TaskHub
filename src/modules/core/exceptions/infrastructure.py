@@ -1,7 +1,9 @@
-from src.modules.core.exceptions import InfrastructureError
+class InfrastructureError(Exception):
+    """Base infrastructure error"""
 
+    pass
 
-# DB Exceptions
+# ===== DB Exceptions =====
 class DatabaseError(InfrastructureError):
     """Base exception for database errors"""
 
@@ -31,7 +33,7 @@ class NoChangesError(InfrastructureError):
 
     pass
 
-
+# User Exceptions
 class UserException(InfrastructureError):
     """Base User error"""
 
@@ -46,6 +48,28 @@ class UserNotFoundError(UserException):
 
 class UserDuplicateError(UserException):
     """User with same unique field exists"""
+
+    pass
+
+# Org Exceptions
+class OrgException(InfrastructureError):
+    """Base Organization error"""
+
+    pass
+
+
+class OrgNotFoundError(OrgException):
+    """Organization not found in database"""
+
+    pass
+
+class MemberNotFoundError(OrgException):
+    """Member not found in database"""
+
+    pass
+
+class MemberDuplicateError(OrgException):
+    """Member with same unique field exists"""
 
     pass
 
@@ -80,6 +104,9 @@ class TokenCreationError(InfrastructureError):
 
     pass
 
+class InvalidToken(InfrastructureError):
+
+    pass
 
 # ===== Hasher Exceptions =====
 class PasswordHasherError(InfrastructureError):

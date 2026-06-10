@@ -6,7 +6,7 @@ from src.modules.auth.domain.ports.password_reset_repo_interface import (
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.auth.domain.value_objects.id import ID
-from src.modules.auth.exceptions import InvalidToken, UserNotFoundError
+from src.modules.core.exceptions import InvalidToken, UserNotFoundError
 from src.modules.core.crypto_utils import IDGenerator
 from src.modules.core.conf import Config
 from workers.email_tasks import send_password_reset_email

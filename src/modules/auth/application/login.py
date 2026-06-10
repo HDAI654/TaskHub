@@ -4,7 +4,7 @@ from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.auth.domain.value_objects.email import Email
 from src.modules.auth.infrastructure.security.jwt_encoder import JWTEncoder
 from src.modules.auth.infrastructure.security.password_hasher import PasswordHasher
-from src.modules.auth.exceptions import InvalidEmailOrPassword
+from src.modules.core.exceptions import InvalidEmailOrPassword
 
 logger = logging.getLogger(__name__)
 

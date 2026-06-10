@@ -1,5 +1,5 @@
 from src.modules.core.base_vo import BaseVO
-from src.modules.org.exceptions import InvalidNameError
+from src.modules.core.exceptions import InvalidNameError
 
 
 class Name(BaseVO[str]):
