@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from src.modules.auth.application.set_password import SetPassService
 from src.modules.auth.presentation.api.v1.dependencies import get_set_password_service
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     UserNotFoundError,
     InvalidToken,
     InvalidOldPassword,

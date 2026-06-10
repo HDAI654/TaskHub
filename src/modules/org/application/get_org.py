@@ -5,13 +5,11 @@ from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.org.domain.value_objects.id import ID
 from src.modules.core.exceptions import InvalidToken, UserNotFoundError
 from src.modules.org.domain.entities.organization import OrgEntity
-from src.modules.org.domain.factories.organization_factory import OrgFactory
-from src.modules.org.domain.value_objects.role import Role
 
 logger = logging.getLogger(__name__)
 
 
-class CreateOrgService:
+class GetOrgService:
     def __init__(
         self,
         uow: IUnitOfWork,
@@ -22,8 +20,8 @@ class CreateOrgService:
         self.token_repo = token_repo
         self.jwt_decoder = jwt_decoder
 
-    async def execute(self, access_token: str, name: str) -> OrgEntity:
-        logger.info("Creating organization: name=%s", name)
+    async def execute(self, access_token: str, org_id: str) -> OrgEntity:
+        logger.info("Getting organization: org_id=%s", org_id)
 
         # Decode and validate access token
         payload = self.jwt_decoder.decode_and_validate(access_token, "access")
@@ -43,17 +41,9 @@ class CreateOrgService:
         if payload["ver"] != current_version or is_token_blocked:
             raise InvalidToken("Access token is expired")
 
-        # Create organization
-        org = OrgFactory.create(name=name)
-        await self.uow.orgs.add(org)
+        # Get organization
+        org_id_vo = ID(org_id)
+        org = await self.uow.orgs.get_by_id(org_id_vo)
 
-        # Add creator as owner
-        await self.uow.orgs.add_member(org.id, user.id, Role("owner"))
-        await self.uow.commit()
-
-        logger.info(
-            "Organization created successfully: org_id=%s, owner=%s",
-            org.id.value,
-            user.id.value,
-        )
+        logger.info("Organization retrieved successfully: org_id=%s", org_id)
         return org

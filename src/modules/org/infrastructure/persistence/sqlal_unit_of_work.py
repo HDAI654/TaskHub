@@ -3,6 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.modules.org.domain.ports.unit_of_work_interface import (
     IUnitOfWork,
 )
+from src.modules.auth.infrastructure.persistence.sqlal_user_repo import (
+    SQLAL_UserRepository,
+)
 from src.modules.org.infrastructure.persistence.sqlal_org_repo import (
     SQLAL_OrgRepository,
 )
@@ -25,6 +28,7 @@ class SQLAL_UnitOfWork(IUnitOfWork):
     def __init__(self, session: AsyncSession):
         self._session = session
 
+        self.users = SQLAL_UserRepository(session)
         self.orgs = SQLAL_OrgRepository(session)
 
     async def commit(self) -> None:

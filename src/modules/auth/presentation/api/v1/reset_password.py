@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from src.modules.auth.application.reset_password import ResetPassService
 from src.modules.auth.presentation.api.v1.dependencies import get_reset_password_service
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     UserNotFoundError,
     InvalidToken,
     PermissionDenied,

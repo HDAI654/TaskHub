@@ -3,6 +3,7 @@ class InfrastructureError(Exception):
 
     pass
 
+
 # ===== DB Exceptions =====
 class DatabaseError(InfrastructureError):
     """Base exception for database errors"""
@@ -33,6 +34,7 @@ class NoChangesError(InfrastructureError):
 
     pass
 
+
 # User Exceptions
 class UserException(InfrastructureError):
     """Base User error"""
@@ -51,6 +53,7 @@ class UserDuplicateError(UserException):
 
     pass
 
+
 # Org Exceptions
 class OrgException(InfrastructureError):
     """Base Organization error"""
@@ -63,10 +66,12 @@ class OrgNotFoundError(OrgException):
 
     pass
 
+
 class MemberNotFoundError(OrgException):
     """Member not found in database"""
 
     pass
+
 
 class MemberDuplicateError(OrgException):
     """Member with same unique field exists"""
@@ -104,9 +109,11 @@ class TokenCreationError(InfrastructureError):
 
     pass
 
+
 class InvalidToken(InfrastructureError):
 
     pass
+
 
 # ===== Hasher Exceptions =====
 class PasswordHasherError(InfrastructureError):

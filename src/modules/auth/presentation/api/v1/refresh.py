@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 from src.modules.auth.application.token_rotation import TokenRotationService
 from src.modules.auth.presentation.api.v1.dependencies import get_token_rotation_service
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     UserNotFoundError,
     InvalidToken,
     DatabaseError,

@@ -7,7 +7,7 @@ from src.modules.auth.application.reset_pass_token_publisher import (
 from src.modules.auth.presentation.api.v1.dependencies import (
     get_reset_password_publish_service,
 )
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     UserNotFoundError,
     InvalidToken,
     DatabaseError,

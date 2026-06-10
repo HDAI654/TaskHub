@@ -133,14 +133,11 @@ class SQLAL_OrgRepository(IOrgRepository):
             role,
         )
 
-        query = (
-            select(
-                OrgMemberModel.user_id,
-                OrgMemberModel.role,
-                OrgMemberModel.joined_at,
-            )
-            .where(OrgMemberModel.organization_id == org_id.value)
-        )
+        query = select(
+            OrgMemberModel.user_id,
+            OrgMemberModel.role,
+            OrgMemberModel.joined_at,
+        ).where(OrgMemberModel.organization_id == org_id.value)
 
         if role:
             query = query.where(OrgMemberModel.role == role.value)
@@ -180,7 +177,6 @@ class SQLAL_OrgRepository(IOrgRepository):
                 OrgMemberModel.role,
                 OrgMemberModel.joined_at,
                 OrgModel.name,
-                
             )
             .join(OrgMemberModel, OrgModel.public_id == OrgMemberModel.organization_id)
             .where(OrgMemberModel.user_id == user_id.value)

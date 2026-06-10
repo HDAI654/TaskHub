@@ -3,6 +3,7 @@ class ApplicationError(Exception):
 
     pass
 
+
 class InvalidEmailOrPassword(ApplicationError):
     """Raised when email/password combination is invalid"""
 

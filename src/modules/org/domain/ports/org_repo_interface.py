@@ -7,7 +7,7 @@ from src.modules.org.domain.value_objects.role import Role
 
 class IOrgRepository(ABC):
     """Repository interface for organization entities."""
-    
+
     @abstractmethod
     async def add(self, org: OrgEntity) -> None:
         """Create a new organization in the database."""

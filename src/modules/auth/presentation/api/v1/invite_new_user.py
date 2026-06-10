@@ -7,7 +7,7 @@ from src.modules.auth.application.invite import (
 from src.modules.auth.presentation.api.v1.dependencies import (
     get_invite_service,
 )
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     UserNotFoundError,
     InvalidToken,
     InvalidEmailError,

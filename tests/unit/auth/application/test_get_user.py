@@ -47,9 +47,7 @@ class TestGetUserByIDService:
         )
 
     async def test_get_user_success(self, user, service):
-        found_user = await service.execute(
-            user.id.value
-        )
+        found_user = await service.execute(user.id.value)
 
         assert found_user.id == user.id
         assert found_user.email == user.email

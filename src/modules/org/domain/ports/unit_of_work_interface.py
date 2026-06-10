@@ -1,10 +1,14 @@
 from abc import ABC, abstractmethod
+from src.modules.auth.domain.ports.user_repo_interface import (
+    IUserRepository,
+)
 from src.modules.org.domain.ports.org_repo_interface import (
     IOrgRepository,
 )
 
 
 class IUnitOfWork(ABC):
+    users: IUserRepository
     orgs: IOrgRepository
 
     @abstractmethod

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status, HTTPException, Request
 from pydantic import BaseModel
 from src.modules.auth.application.signup import SignupService
 from src.modules.auth.presentation.api.v1.dependencies import get_signup_service
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     WeakPasswordError,
     InvalidEmailError,
     UserDuplicateError,

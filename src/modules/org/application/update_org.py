@@ -3,15 +3,18 @@ from src.modules.org.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.org.domain.value_objects.id import ID
-from src.modules.core.exceptions import InvalidToken, UserNotFoundError
-from src.modules.org.domain.entities.organization import OrgEntity
-from src.modules.org.domain.factories.organization_factory import OrgFactory
-from src.modules.org.domain.value_objects.role import Role
+from src.modules.core.exceptions import (
+    InvalidToken,
+    UserNotFoundError,
+    OrgNotFoundError,
+    PermissionDenied,
+)
+from src.modules.org.domain.value_objects.name import Name
 
 logger = logging.getLogger(__name__)
 
 
-class CreateOrgService:
+class UpdateOrgService:
     def __init__(
         self,
         uow: IUnitOfWork,
@@ -22,8 +25,8 @@ class CreateOrgService:
         self.token_repo = token_repo
         self.jwt_decoder = jwt_decoder
 
-    async def execute(self, access_token: str, name: str) -> OrgEntity:
-        logger.info("Creating organization: name=%s", name)
+    async def execute(self, access_token: str, org_id: str, new_name: str) -> None:
+        logger.info("Updating organization: org_id=%s, new_name=%s", org_id, new_name)
 
         # Decode and validate access token
         payload = self.jwt_decoder.decode_and_validate(access_token, "access")
@@ -43,17 +46,23 @@ class CreateOrgService:
         if payload["ver"] != current_version or is_token_blocked:
             raise InvalidToken("Access token is expired")
 
-        # Create organization
-        org = OrgFactory.create(name=name)
-        await self.uow.orgs.add(org)
+        # Check organization exists
+        org_id_vo = ID(org_id)
+        if not await self.uow.orgs.exists_by_id(org_id_vo):
+            raise OrgNotFoundError(f"Organization with id {org_id} not found")
 
-        # Add creator as owner
-        await self.uow.orgs.add_member(org.id, user.id, Role("owner"))
+        # Check if user is owner
+        role = await self.uow.orgs.get_user_role(org_id_vo, user.id)
+        if role is None or role.value != "owner":
+            logger.debug(
+                "User is not owner of organization: user_id=%s, org_id=%s",
+                user.id.value,
+                org_id,
+            )
+            raise PermissionDenied("Only owner can edit organization")
+
+        # Update organization name
+        await self.uow.orgs.update(org_id_vo, new_name=Name(new_name))
         await self.uow.commit()
 
-        logger.info(
-            "Organization created successfully: org_id=%s, owner=%s",
-            org.id.value,
-            user.id.value,
-        )
-        return org
+        logger.info("Organization updated successfully: org_id=%s", org_id)

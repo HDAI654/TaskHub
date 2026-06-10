@@ -15,7 +15,7 @@ class GetUserByIDService:
 
     async def execute(self, user_id: str) -> UserEntity:
         logger.info("GetUserByIDService started: user_id=%s", user_id)
-        
+
         # Retrieve user by id
         user = await self.uow.users.get_by_id(id=ID(user_id))
 

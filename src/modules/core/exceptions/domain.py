@@ -8,12 +8,14 @@ class DomainError(Exception):
 class InvalidIDError(DomainError):
     pass
 
+
 class InvalidHashedPasswordError(DomainError):
     pass
 
 
 class InvalidEmailError(DomainError):
     pass
+
 
 class InvalidDatetimeError(DomainError):
     pass

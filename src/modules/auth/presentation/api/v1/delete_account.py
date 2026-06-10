@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from src.modules.auth.application.del_account import DelAccountService
 from src.modules.auth.presentation.api.v1.dependencies import get_del_account_service
-from src.modules.auth.exceptions import (
+from src.modules.core.exceptions import (
     UserNotFoundError,
     InvalidToken,
     DatabaseError,

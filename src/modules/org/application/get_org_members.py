@@ -3,15 +3,17 @@ from src.modules.org.domain.ports.unit_of_work_interface import IUnitOfWork
 from src.modules.auth.domain.ports.token_repo_interface import ITokenRepository
 from src.modules.core.jwt_decoder import JWTDecoder
 from src.modules.org.domain.value_objects.id import ID
-from src.modules.core.exceptions import InvalidToken, UserNotFoundError
-from src.modules.org.domain.entities.organization import OrgEntity
-from src.modules.org.domain.factories.organization_factory import OrgFactory
+from src.modules.core.exceptions import (
+    InvalidToken,
+    UserNotFoundError,
+    OrgNotFoundError,
+)
 from src.modules.org.domain.value_objects.role import Role
 
 logger = logging.getLogger(__name__)
 
 
-class CreateOrgService:
+class GetOrgMembersService:
     def __init__(
         self,
         uow: IUnitOfWork,
@@ -22,8 +24,12 @@ class CreateOrgService:
         self.token_repo = token_repo
         self.jwt_decoder = jwt_decoder
 
-    async def execute(self, access_token: str, name: str) -> OrgEntity:
-        logger.info("Creating organization: name=%s", name)
+    async def execute(
+        self, access_token: str, org_id: str, role: str | None = None
+    ) -> list[dict[str, str]]:
+        logger.info(
+            "Getting members for organization: org_id=%s, role_filter=%s", org_id, role
+        )
 
         # Decode and validate access token
         payload = self.jwt_decoder.decode_and_validate(access_token, "access")
@@ -43,17 +49,16 @@ class CreateOrgService:
         if payload["ver"] != current_version or is_token_blocked:
             raise InvalidToken("Access token is expired")
 
-        # Create organization
-        org = OrgFactory.create(name=name)
-        await self.uow.orgs.add(org)
+        # Check organization exists
+        org_id_vo = ID(org_id)
+        if not await self.uow.orgs.exists_by_id(org_id_vo):
+            raise OrgNotFoundError(f"Organization with id {org_id} not found")
 
-        # Add creator as owner
-        await self.uow.orgs.add_member(org.id, user.id, Role("owner"))
-        await self.uow.commit()
+        # Get members
+        role_vo = Role(role) if role else None
+        members = await self.uow.orgs.get_members(org_id_vo, role_vo)
 
         logger.info(
-            "Organization created successfully: org_id=%s, owner=%s",
-            org.id.value,
-            user.id.value,
+            "Members retrieved successfully: org_id=%s, count=%d", org_id, len(members)
         )
-        return org
+        return members
