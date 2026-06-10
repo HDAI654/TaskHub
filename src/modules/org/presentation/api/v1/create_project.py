@@ -23,7 +23,6 @@ RATE_LIMIT_MAX_REQUESTS = 20
 
 class CreateProjectRequest(BaseModel):
     access_token: str
-    org_id: str
     name: str
     description: str
 
@@ -35,7 +34,7 @@ class CreateProjectResponse(BaseModel):
 
 
 @router.post(
-    "/projects",
+    "/orgs/{org_id}/projects",
     response_model=CreateProjectResponse,
     status_code=status.HTTP_201_CREATED,
 )
@@ -44,6 +43,7 @@ class CreateProjectResponse(BaseModel):
 )
 async def create_project(
     request: Request,
+    org_id: str,
     project_data: CreateProjectRequest,
     service: CreateProjectService = Depends(get_create_project_service),
 ):
@@ -51,7 +51,7 @@ async def create_project(
     try:
         project = await service.execute(
             access_token=project_data.access_token,
-            org_id=project_data.org_id,
+            org_id=org_id,
             name=project_data.name,
             description=project_data.description,
         )

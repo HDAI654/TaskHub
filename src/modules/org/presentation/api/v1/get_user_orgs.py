@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from pydantic import BaseModel
 from typing import List
 from src.modules.org.application.get_user_orgs import GetUserOrgsService
@@ -19,10 +19,6 @@ router = APIRouter()
 RATE_LIMIT_MAX_REQUESTS = 30
 
 
-class GetUserOrgsRequest(BaseModel):
-    access_token: str
-
-
 class OrgInfo(BaseModel):
     organization_id: str
     name: str
@@ -34,18 +30,24 @@ class GetUserOrgsResponse(BaseModel):
     orgs: List[OrgInfo]
 
 
-@router.post("/users/orgs", response_model=GetUserOrgsResponse)
+@router.get("/users/orgs", response_model=GetUserOrgsResponse)
 @rate_limit(
     max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="get_user_orgs"
 )
 async def get_user_orgs(
     request: Request,
-    user_data: GetUserOrgsRequest,
+    authorization: str = Header(..., alias="Authorization"),
     service: GetUserOrgsService = Depends(get_get_user_orgs_service),
 ):
     logger.info("GetUserOrgs endpoint started")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid token format")
+
+    access_token = authorization.split(" ")[1]
+
     try:
-        orgs = await service.execute(access_token=user_data.access_token)
+        orgs = await service.execute(access_token=access_token)
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     except DatabaseError:

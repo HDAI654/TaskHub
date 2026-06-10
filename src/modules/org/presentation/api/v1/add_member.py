@@ -24,7 +24,6 @@ RATE_LIMIT_MAX_REQUESTS = 20
 
 class AddMemberRequest(BaseModel):
     access_token: str
-    org_id: str
     user_id: str
     role: str
 
@@ -34,13 +33,14 @@ class AddMemberResponse(BaseModel):
 
 
 @router.post(
-    "/orgs/members",
+    "/orgs/{org_id}/members",
     response_model=AddMemberResponse,
     status_code=status.HTTP_201_CREATED,
 )
 @rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="add_member")
 async def add_member(
     request: Request,
+    org_id: str,
     member_data: AddMemberRequest,
     service: AddMemberService = Depends(get_add_member_service),
 ):
@@ -48,7 +48,7 @@ async def add_member(
     try:
         await service.execute(
             access_token=member_data.access_token,
-            org_id=member_data.org_id,
+            org_id=org_id,
             user_to_add_id=member_data.user_id,
             role=member_data.role,
         )

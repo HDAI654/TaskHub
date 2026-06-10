@@ -3,13 +3,10 @@ from httpx import AsyncClient, ASGITransport
 from src.main import app
 from src.modules.core.database import engine, Base
 from src.modules.core.redis_client import get_redis_client
-from src.modules.org.domain.value_objects.id import ID
 from src.modules.core.jwt_decoder import JWTDecoder
 
 
-class TestOrgE2E:
-    """End-to-end tests for organization management"""
-
+class TestOrgMngE2E:
     @pytest.fixture(autouse=True)
     async def setup_db(self):
         async with engine.begin() as conn:
@@ -60,7 +57,6 @@ class TestOrgE2E:
         10. Delete organization
         """
         # ===== Register users =====
-        # Owner registration
         response = await client.post(
             "/api/v1/auth/register",
             json={
@@ -71,7 +67,6 @@ class TestOrgE2E:
         assert response.status_code == 201
         owner_token = response.json()["access_token"]
 
-        # Member registration
         response = await client.post(
             "/api/v1/auth/register",
             json={
@@ -85,7 +80,7 @@ class TestOrgE2E:
 
         # ===== Create organization =====
         response = await client.post(
-            "/api/v1/orgs",
+            "/api/v1/mng/orgs",
             json={
                 "access_token": owner_token,
                 "name": "Test Org",
@@ -98,10 +93,9 @@ class TestOrgE2E:
 
         # ===== Add member to organization =====
         response = await client.post(
-            "/api/v1/orgs/members",
+            f"/api/v1/mng/orgs/{org_id}/members",
             json={
                 "access_token": owner_token,
-                "org_id": org_id,
                 "user_id": member_user_id,
                 "role": "member",
             },
@@ -110,12 +104,9 @@ class TestOrgE2E:
         assert response.json()["message"] == "Member added successfully"
 
         # ===== Get organization details =====
-        response = await client.post(
-            "/api/v1/orgs/get",
-            json={
-                "access_token": owner_token,
-                "org_id": org_id,
-            },
+        response = await client.get(
+            f"/api/v1/mng/orgs/{org_id}",
+            headers={"Authorization": f"Bearer {owner_token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -123,11 +114,9 @@ class TestOrgE2E:
         assert data["name"] == "Test Org"
 
         # ===== Get user's organizations =====
-        response = await client.post(
-            "/api/v1/users/orgs",
-            json={
-                "access_token": owner_token,
-            },
+        response = await client.get(
+            "/api/v1/mng/users/orgs",
+            headers={"Authorization": f"Bearer {owner_token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -137,27 +126,22 @@ class TestOrgE2E:
         assert data["orgs"][0]["role"] == "owner"
 
         # ===== Get organization members =====
-        response = await client.post(
-            "/api/v1/orgs/members/list",
-            json={
-                "access_token": owner_token,
-                "org_id": org_id,
-            },
+        response = await client.get(
+            f"/api/v1/mng/orgs/{org_id}/members",
+            headers={"Authorization": f"Bearer {owner_token}"},
         )
         assert response.status_code == 200
         data = response.json()
-        assert len(data["members"]) == 2  # owner + member
+        assert len(data["members"]) == 2
         roles = {m["user_id"]: m["role"] for m in data["members"]}
         assert roles[await self._get_user_id_from_token(owner_token)] == "owner"
         assert roles[member_user_id] == "member"
 
         # ===== Change member role =====
         response = await client.put(
-            "/api/v1/orgs/members/role",
+            f"/api/v1/mng/orgs/{org_id}/members/{member_user_id}/role",
             json={
                 "access_token": owner_token,
-                "org_id": org_id,
-                "user_id": member_user_id,
                 "new_role": "admin",
             },
         )
@@ -165,12 +149,9 @@ class TestOrgE2E:
         assert response.json()["message"] == "User role changed successfully"
 
         # Verify role changed
-        response = await client.post(
-            "/api/v1/orgs/members/list",
-            json={
-                "access_token": owner_token,
-                "org_id": org_id,
-            },
+        response = await client.get(
+            f"/api/v1/mng/orgs/{org_id}/members",
+            headers={"Authorization": f"Bearer {owner_token}"},
         )
         data = response.json()
         for m in data["members"]:
@@ -179,10 +160,9 @@ class TestOrgE2E:
 
         # ===== Update organization name =====
         response = await client.put(
-            "/api/v1/orgs",
+            f"/api/v1/mng/orgs/{org_id}",
             json={
                 "access_token": owner_token,
-                "org_id": org_id,
                 "new_name": "Updated Org Name",
             },
         )
@@ -190,34 +170,24 @@ class TestOrgE2E:
         assert response.json()["message"] == "Organization updated successfully"
 
         # Verify name updated
-        response = await client.post(
-            "/api/v1/orgs/get",
-            json={
-                "access_token": owner_token,
-                "org_id": org_id,
-            },
+        response = await client.get(
+            f"/api/v1/mng/orgs/{org_id}",
+            headers={"Authorization": f"Bearer {owner_token}"},
         )
         assert response.json()["name"] == "Updated Org Name"
 
         # ===== Remove member =====
-        response = await client.post(
-            "/api/v1/orgs/members/delete",
-            json={
-                "access_token": owner_token,
-                "org_id": org_id,
-                "user_id": member_user_id,
-            },
+        response = await client.delete(
+            f"/api/v1/mng/orgs/{org_id}/members/{member_user_id}",
+            headers={"Authorization": f"Bearer {owner_token}"},
         )
         assert response.status_code == 200
         assert response.json()["message"] == "Member removed successfully"
 
         # Verify member removed
-        response = await client.post(
-            "/api/v1/orgs/members/list",
-            json={
-                "access_token": owner_token,
-                "org_id": org_id,
-            },
+        response = await client.get(
+            f"/api/v1/mng/orgs/{org_id}/members",
+            headers={"Authorization": f"Bearer {owner_token}"},
         )
         data = response.json()
         assert len(data["members"]) == 1
@@ -226,23 +196,17 @@ class TestOrgE2E:
         )
 
         # ===== Delete organization =====
-        response = await client.post(
-            "/api/v1/orgs/delete",
-            json={
-                "access_token": owner_token,
-                "org_id": org_id,
-            },
+        response = await client.delete(
+            f"/api/v1/mng/orgs/{org_id}",
+            headers={"Authorization": f"Bearer {owner_token}"},
         )
         assert response.status_code == 200
         assert response.json()["message"] == "Organization deleted successfully"
 
         # Verify organization no longer accessible
-        response = await client.post(
-            "/api/v1/orgs/get",
-            json={
-                "access_token": owner_token,
-                "org_id": org_id,
-            },
+        response = await client.get(
+            f"/api/v1/mng/orgs/{org_id}",
+            headers={"Authorization": f"Bearer {owner_token}"},
         )
         assert response.status_code == 404
 
@@ -253,7 +217,6 @@ class TestOrgE2E:
         - Only owner/admin can add/remove members
         - Only owner can change roles
         """
-        # Register users
         response = await client.post(
             "/api/v1/auth/register",
             json={
@@ -273,9 +236,8 @@ class TestOrgE2E:
         member_token = response.json()["access_token"]
         member_id = await self._get_user_id_from_token(member_token)
 
-        # Create org as owner
         response = await client.post(
-            "/api/v1/orgs",
+            "/api/v1/mng/orgs",
             json={
                 "access_token": owner_token,
                 "name": "Permission Test Org",
@@ -285,10 +247,9 @@ class TestOrgE2E:
 
         # Add member (owner can add)
         response = await client.post(
-            "/api/v1/orgs/members",
+            f"/api/v1/mng/orgs/{org_id}/members",
             json={
                 "access_token": owner_token,
-                "org_id": org_id,
                 "user_id": member_id,
                 "role": "member",
             },
@@ -297,31 +258,26 @@ class TestOrgE2E:
 
         # Member tries to update org (should fail)
         response = await client.put(
-            "/api/v1/orgs",
+            f"/api/v1/mng/orgs/{org_id}",
             json={
                 "access_token": member_token,
-                "org_id": org_id,
                 "new_name": "Hacked Name",
             },
         )
         assert response.status_code == 403
 
         # Member tries to delete org (should fail)
-        response = await client.post(
-            "/api/v1/orgs/delete",
-            json={
-                "access_token": member_token,
-                "org_id": org_id,
-            },
+        response = await client.delete(
+            f"/api/v1/mng/orgs/{org_id}",
+            headers={"Authorization": f"Bearer {member_token}"},
         )
         assert response.status_code == 403
 
         # Member tries to add another user (should fail)
         response = await client.post(
-            "/api/v1/orgs/members",
+            f"/api/v1/mng/orgs/{org_id}/members",
             json={
                 "access_token": member_token,
-                "org_id": org_id,
                 "user_id": "some-id",
                 "role": "member",
             },
@@ -329,23 +285,17 @@ class TestOrgE2E:
         assert response.status_code == 403
 
         # Member tries to remove someone (should fail)
-        response = await client.post(
-            "/api/v1/orgs/members/delete",
-            json={
-                "access_token": member_token,
-                "org_id": org_id,
-                "user_id": member_id,
-            },
+        response = await client.delete(
+            f"/api/v1/mng/orgs/{org_id}/members/{member_id}",
+            headers={"Authorization": f"Bearer {member_token}"},
         )
         assert response.status_code == 403
 
         # Member tries to change role (should fail)
         response = await client.put(
-            "/api/v1/orgs/members/role",
+            f"/api/v1/mng/orgs/{org_id}/members/{member_id}/role",
             json={
                 "access_token": member_token,
-                "org_id": org_id,
-                "user_id": member_id,
                 "new_role": "admin",
             },
         )
@@ -353,11 +303,9 @@ class TestOrgE2E:
 
         # Owner changes member to admin
         response = await client.put(
-            "/api/v1/orgs/members/role",
+            f"/api/v1/mng/orgs/{org_id}/members/{member_id}/role",
             json={
                 "access_token": owner_token,
-                "org_id": org_id,
-                "user_id": member_id,
                 "new_role": "admin",
             },
         )
@@ -378,10 +326,9 @@ class TestOrgE2E:
         third_id = await self._get_user_id_from_token(third_token)
 
         response = await client.post(
-            "/api/v1/orgs/members",
+            f"/api/v1/mng/orgs/{org_id}/members",
             json={
                 "access_token": member_token,
-                "org_id": org_id,
                 "user_id": third_id,
                 "role": "member",
             },
@@ -390,28 +337,22 @@ class TestOrgE2E:
 
         # Admin tries to change role (should fail - only owner)
         response = await client.put(
-            "/api/v1/orgs/members/role",
+            f"/api/v1/mng/orgs/{org_id}/members/{third_id}/role",
             json={
                 "access_token": member_token,
-                "org_id": org_id,
-                "user_id": third_id,
                 "new_role": "admin",
             },
         )
         assert response.status_code == 403
 
         # Cleanup: delete org
-        await client.post(
-            "/api/v1/orgs/delete",
-            json={
-                "access_token": owner_token,
-                "org_id": org_id,
-            },
+        await client.delete(
+            f"/api/v1/mng/orgs/{org_id}",
+            headers={"Authorization": f"Bearer {owner_token}"},
         )
 
     async def test_add_member_already_member(self, client, user_data, second_user_data):
         """Adding user who is already a member should fail"""
-        # Register users
         response = await client.post(
             "/api/v1/auth/register",
             json={
@@ -431,9 +372,8 @@ class TestOrgE2E:
         member_token = response.json()["access_token"]
         member_id = await self._get_user_id_from_token(member_token)
 
-        # Create org
         response = await client.post(
-            "/api/v1/orgs",
+            "/api/v1/mng/orgs",
             json={
                 "access_token": owner_token,
                 "name": "Test Org",
@@ -441,24 +381,20 @@ class TestOrgE2E:
         )
         org_id = response.json()["org_id"]
 
-        # Add member once
         response = await client.post(
-            "/api/v1/orgs/members",
+            f"/api/v1/mng/orgs/{org_id}/members",
             json={
                 "access_token": owner_token,
-                "org_id": org_id,
                 "user_id": member_id,
                 "role": "member",
             },
         )
         assert response.status_code == 201
 
-        # Add again
         response = await client.post(
-            "/api/v1/orgs/members",
+            f"/api/v1/mng/orgs/{org_id}/members",
             json={
                 "access_token": owner_token,
-                "org_id": org_id,
                 "user_id": member_id,
                 "role": "member",
             },
@@ -467,7 +403,6 @@ class TestOrgE2E:
 
     async def test_remove_nonexistent_member(self, client, user_data):
         """Removing a user who is not a member should fail"""
-        # Register user
         response = await client.post(
             "/api/v1/auth/register",
             json={
@@ -477,9 +412,8 @@ class TestOrgE2E:
         )
         token = response.json()["access_token"]
 
-        # Create org
         response = await client.post(
-            "/api/v1/orgs",
+            "/api/v1/mng/orgs",
             json={
                 "access_token": token,
                 "name": "Test Org",
@@ -487,14 +421,9 @@ class TestOrgE2E:
         )
         org_id = response.json()["org_id"]
 
-        # Remove non-existent member
-        response = await client.post(
-            "/api/v1/orgs/members/delete",
-            json={
-                "access_token": token,
-                "org_id": org_id,
-                "user_id": "non-existent-id",
-            },
+        response = await client.delete(
+            f"/api/v1/mng/orgs/{org_id}/members/non-existent-id",
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 404
 
@@ -509,17 +438,13 @@ class TestOrgE2E:
         )
         token = response.json()["access_token"]
 
-        response = await client.post(
-            "/api/v1/orgs/get",
-            json={
-                "access_token": token,
-                "org_id": "non-existent-id",
-            },
+        response = await client.get(
+            "/api/v1/mng/orgs/non-existent-id",
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 404
 
     async def _get_user_id_from_token(self, token: str) -> str:
-        """Helper to extract user_id from JWT token"""
         decoder = JWTDecoder()
         payload = decoder.decode_token(token)
         return payload["sub"]

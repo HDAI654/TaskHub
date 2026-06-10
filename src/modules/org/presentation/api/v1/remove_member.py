@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from pydantic import BaseModel
 from src.modules.org.application.remove_member import RemoveMemberService
 from src.modules.org.presentation.api.v1.dependencies import get_remove_member_service
@@ -21,31 +21,33 @@ router = APIRouter()
 RATE_LIMIT_MAX_REQUESTS = 20
 
 
-class RemoveMemberRequest(BaseModel):
-    access_token: str
-    org_id: str
-    user_id: str
-
-
 class RemoveMemberResponse(BaseModel):
     message: str
 
 
-@router.post("/orgs/members/delete", response_model=RemoveMemberResponse)
+@router.delete("/orgs/{org_id}/members/{user_id}", response_model=RemoveMemberResponse)
 @rate_limit(
     max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="remove_member"
 )
 async def remove_member(
     request: Request,
-    member_data: RemoveMemberRequest,
+    org_id: str,
+    user_id: str,
+    authorization: str = Header(..., alias="Authorization"),
     service: RemoveMemberService = Depends(get_remove_member_service),
 ):
     logger.info("RemoveMember endpoint started")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid token format")
+
+    access_token = authorization.split(" ")[1]
+
     try:
         await service.execute(
-            access_token=member_data.access_token,
-            org_id=member_data.org_id,
-            user_to_remove_id=member_data.user_id,
+            access_token=access_token,
+            org_id=org_id,
+            user_to_remove_id=user_id,
         )
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")

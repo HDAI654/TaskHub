@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from pydantic import BaseModel
 from src.modules.org.application.get_project import GetProjectService
 from src.modules.org.presentation.api.v1.dependencies import get_get_project_service
@@ -21,11 +21,6 @@ router = APIRouter()
 RATE_LIMIT_MAX_REQUESTS = 30
 
 
-class GetProjectRequest(BaseModel):
-    access_token: str
-    project_id: str
-
-
 class GetProjectResponse(BaseModel):
     project_id: str
     org_id: str
@@ -34,20 +29,27 @@ class GetProjectResponse(BaseModel):
     created_at: str
 
 
-@router.post("/projects/get", response_model=GetProjectResponse)
+@router.get("/projects/{project_id}", response_model=GetProjectResponse)
 @rate_limit(
     max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="get_project"
 )
 async def get_project(
     request: Request,
-    project_data: GetProjectRequest,
+    project_id: str,
+    authorization: str = Header(..., alias="Authorization"),
     service: GetProjectService = Depends(get_get_project_service),
 ):
     logger.info("GetProject endpoint started")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid token format")
+
+    access_token = authorization.split(" ")[1]
+
     try:
         project = await service.execute(
-            access_token=project_data.access_token,
-            project_id=project_data.project_id,
+            access_token=access_token,
+            project_id=project_id,
         )
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")

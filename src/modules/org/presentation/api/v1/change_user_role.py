@@ -25,8 +25,6 @@ RATE_LIMIT_MAX_REQUESTS = 20
 
 class ChangeUserRoleRequest(BaseModel):
     access_token: str
-    org_id: str
-    user_id: str
     new_role: str
 
 
@@ -34,12 +32,16 @@ class ChangeUserRoleResponse(BaseModel):
     message: str
 
 
-@router.put("/orgs/members/role", response_model=ChangeUserRoleResponse)
+@router.put(
+    "/orgs/{org_id}/members/{user_id}/role", response_model=ChangeUserRoleResponse
+)
 @rate_limit(
     max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="change_role"
 )
 async def change_user_role(
     request: Request,
+    org_id: str,
+    user_id: str,
     role_data: ChangeUserRoleRequest,
     service: ChangeUserRoleService = Depends(get_change_user_role_service),
 ):
@@ -47,8 +49,8 @@ async def change_user_role(
     try:
         await service.execute(
             access_token=role_data.access_token,
-            org_id=role_data.org_id,
-            target_user_id=role_data.user_id,
+            org_id=org_id,
+            target_user_id=user_id,
             new_role=role_data.new_role,
         )
     except (InvalidToken, UserNotFoundError):

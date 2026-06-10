@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from pydantic import BaseModel
 from src.modules.org.application.delete_project import DeleteProjectService
 from src.modules.org.presentation.api.v1.dependencies import get_delete_project_service
@@ -21,29 +21,31 @@ router = APIRouter()
 RATE_LIMIT_MAX_REQUESTS = 10
 
 
-class DeleteProjectRequest(BaseModel):
-    access_token: str
-    project_id: str
-
-
 class DeleteProjectResponse(BaseModel):
     message: str
 
 
-@router.post("/projects/delete", response_model=DeleteProjectResponse)
+@router.delete("/projects/{project_id}", response_model=DeleteProjectResponse)
 @rate_limit(
     max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="delete_project"
 )
 async def delete_project(
     request: Request,
-    project_data: DeleteProjectRequest,
+    project_id: str,
+    authorization: str = Header(..., alias="Authorization"),
     service: DeleteProjectService = Depends(get_delete_project_service),
 ):
     logger.info("DeleteProject endpoint started")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid token format")
+
+    access_token = authorization.split(" ")[1]
+
     try:
         await service.execute(
-            access_token=project_data.access_token,
-            project_id=project_data.project_id,
+            access_token=access_token,
+            project_id=project_id,
         )
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")

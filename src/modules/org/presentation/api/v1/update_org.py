@@ -22,7 +22,6 @@ RATE_LIMIT_MAX_REQUESTS = 10
 
 class UpdateOrgRequest(BaseModel):
     access_token: str
-    org_id: str
     new_name: str
 
 
@@ -30,10 +29,11 @@ class UpdateOrgResponse(BaseModel):
     message: str
 
 
-@router.put("/orgs", response_model=UpdateOrgResponse)
+@router.put("/orgs/{org_id}", response_model=UpdateOrgResponse)
 @rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="update_org")
 async def update_org(
     request: Request,
+    org_id: str,
     org_data: UpdateOrgRequest,
     service: UpdateOrgService = Depends(get_update_org_service),
 ):
@@ -41,7 +41,7 @@ async def update_org(
     try:
         await service.execute(
             access_token=org_data.access_token,
-            org_id=org_data.org_id,
+            org_id=org_id,
             new_name=org_data.new_name,
         )
     except (InvalidToken, UserNotFoundError):

@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from pydantic import BaseModel
 from typing import List, Optional
 from src.modules.org.application.get_org_members import GetOrgMembersService
@@ -20,12 +20,6 @@ router = APIRouter()
 RATE_LIMIT_MAX_REQUESTS = 30
 
 
-class GetOrgMembersRequest(BaseModel):
-    access_token: str
-    org_id: str
-    role: Optional[str] = None
-
-
 class MemberInfo(BaseModel):
     user_id: str
     role: str
@@ -36,21 +30,29 @@ class GetOrgMembersResponse(BaseModel):
     members: List[MemberInfo]
 
 
-@router.post("/orgs/members/list", response_model=GetOrgMembersResponse)
+@router.get("/orgs/{org_id}/members", response_model=GetOrgMembersResponse)
 @rate_limit(
     max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="get_org_members"
 )
 async def get_org_members(
     request: Request,
-    members_data: GetOrgMembersRequest,
+    org_id: str,
+    role: Optional[str] = None,
+    authorization: str = Header(..., alias="Authorization"),
     service: GetOrgMembersService = Depends(get_get_org_members_service),
 ):
     logger.info("GetOrgMembers endpoint started")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid token format")
+
+    access_token = authorization.split(" ")[1]
+
     try:
         members = await service.execute(
-            access_token=members_data.access_token,
-            org_id=members_data.org_id,
-            role=members_data.role,
+            access_token=access_token,
+            org_id=org_id,
+            role=role,
         )
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")

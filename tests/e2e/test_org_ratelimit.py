@@ -33,7 +33,7 @@ from src.modules.org.presentation.api.v1.get_org_members import (
 )
 
 
-class TestOrgRateLimit:
+class TestOrgMngRateLimit:
     @pytest.fixture(autouse=True)
     async def setup_db(self):
         async with engine.begin() as conn:
@@ -57,7 +57,6 @@ class TestOrgRateLimit:
 
     @pytest.fixture
     async def user_token(self, client):
-        # Register a user and return access token
         response = await client.post(
             "/api/v1/auth/register",
             json={
@@ -83,7 +82,7 @@ class TestOrgRateLimit:
     @pytest.fixture
     async def org_id(self, client, user_token):
         response = await client.post(
-            "/api/v1/orgs",
+            "/api/v1/mng/orgs",
             json={
                 "access_token": user_token,
                 "name": "RateLimit Org",
@@ -95,7 +94,7 @@ class TestOrgRateLimit:
     async def test_rate_limiting_create_org(self, client, user_token):
         for i in range(CREATE_ORG_LIMIT):
             response = await client.post(
-                "/api/v1/orgs",
+                "/api/v1/mng/orgs",
                 json={
                     "access_token": user_token,
                     "name": f"Org_{i}",
@@ -104,7 +103,7 @@ class TestOrgRateLimit:
             assert response.status_code == 201
 
         response = await client.post(
-            "/api/v1/orgs",
+            "/api/v1/mng/orgs",
             json={
                 "access_token": user_token,
                 "name": "RateLimitedOrg",
@@ -115,21 +114,15 @@ class TestOrgRateLimit:
 
     async def test_rate_limiting_get_org(self, client, user_token, org_id):
         for i in range(GET_ORG_LIMIT):
-            response = await client.post(
-                "/api/v1/orgs/get",
-                json={
-                    "access_token": user_token,
-                    "org_id": org_id,
-                },
+            response = await client.get(
+                f"/api/v1/mng/orgs/{org_id}",
+                headers={"Authorization": f"Bearer {user_token}"},
             )
             assert response.status_code == 200
 
-        response = await client.post(
-            "/api/v1/orgs/get",
-            json={
-                "access_token": user_token,
-                "org_id": org_id,
-            },
+        response = await client.get(
+            f"/api/v1/mng/orgs/{org_id}",
+            headers={"Authorization": f"Bearer {user_token}"},
         )
         assert response.status_code == 429
         assert "Rate limit exceeded" in response.json()["detail"]
@@ -137,20 +130,18 @@ class TestOrgRateLimit:
     async def test_rate_limiting_update_org(self, client, user_token, org_id):
         for i in range(UPDATE_ORG_LIMIT):
             response = await client.put(
-                "/api/v1/orgs",
+                f"/api/v1/mng/orgs/{org_id}",
                 json={
                     "access_token": user_token,
-                    "org_id": org_id,
                     "new_name": f"UpdatedName_{i}",
                 },
             )
             assert response.status_code == 200
 
         response = await client.put(
-            "/api/v1/orgs",
+            f"/api/v1/mng/orgs/{org_id}",
             json={
                 "access_token": user_token,
-                "org_id": org_id,
                 "new_name": "RateLimitedName",
             },
         )
@@ -159,21 +150,15 @@ class TestOrgRateLimit:
 
     async def test_rate_limiting_delete_org(self, client, user_token):
         for i in range(DELETE_ORG_LIMIT):
-            response = await client.post(
-                "/api/v1/orgs/delete",
-                json={
-                    "access_token": user_token,
-                    "org_id": "FakeID",
-                },
+            response = await client.delete(
+                f"/api/v1/mng/orgs/fake-id-{i}",
+                headers={"Authorization": f"Bearer {user_token}"},
             )
             assert response.status_code != 429
 
-        response = await client.post(
-            "/api/v1/orgs/delete",
-            json={
-                "access_token": user_token,
-                "org_id": "FakeID",
-            },
+        response = await client.delete(
+            "/api/v1/mng/orgs/fake-id-final",
+            headers={"Authorization": f"Bearer {user_token}"},
         )
         assert response.status_code == 429
         assert "Rate limit exceeded" in response.json()["detail"]
@@ -181,31 +166,25 @@ class TestOrgRateLimit:
     async def test_rate_limiting_add_member(
         self, client, user_token, second_user_token, org_id
     ):
-        # Need user_id of second user
-        from src.modules.core.jwt_decoder import JWTDecoder
-
         decoder = JWTDecoder()
         payload = decoder.decode_token(second_user_token)
         second_user_id = payload["sub"]
 
         for i in range(ADD_MEMBER_LIMIT):
             response = await client.post(
-                "/api/v1/orgs/members",
+                f"/api/v1/mng/orgs/{org_id}/members",
                 json={
                     "access_token": user_token,
-                    "org_id": org_id,
                     "user_id": second_user_id,
                     "role": "member",
                 },
             )
             assert response.status_code in (201, 409)
 
-        # Next request should be rate limited
         response = await client.post(
-            "/api/v1/orgs/members",
+            f"/api/v1/mng/orgs/{org_id}/members",
             json={
                 "access_token": user_token,
-                "org_id": org_id,
                 "user_id": second_user_id,
                 "role": "member",
             },
@@ -219,37 +198,25 @@ class TestOrgRateLimit:
         payload = decoder.decode_token(second_user_token)
         second_user_id = payload["sub"]
 
-        # Add member first (once)
         await client.post(
-            "/api/v1/orgs/members",
+            f"/api/v1/mng/orgs/{org_id}/members",
             json={
                 "access_token": user_token,
-                "org_id": org_id,
                 "user_id": second_user_id,
                 "role": "member",
             },
         )
 
         for i in range(REMOVE_MEMBER_LIMIT):
-            response = await client.post(
-                "/api/v1/orgs/members/delete",
-                json={
-                    "access_token": user_token,
-                    "org_id": org_id,
-                    "user_id": second_user_id,
-                },
+            response = await client.delete(
+                f"/api/v1/mng/orgs/{org_id}/members/{second_user_id}",
+                headers={"Authorization": f"Bearer {user_token}"},
             )
-            # After first removal, subsequent will be 404, but no rate limit yet
             assert response.status_code in (200, 404)
 
-        # Next request should be rate limited
-        response = await client.post(
-            "/api/v1/orgs/members/delete",
-            json={
-                "access_token": user_token,
-                "org_id": org_id,
-                "user_id": second_user_id,
-            },
+        response = await client.delete(
+            f"/api/v1/mng/orgs/{org_id}/members/{second_user_id}",
+            headers={"Authorization": f"Bearer {user_token}"},
         )
         assert response.status_code == 429
 
@@ -260,12 +227,10 @@ class TestOrgRateLimit:
         payload = decoder.decode_token(second_user_token)
         second_user_id = payload["sub"]
 
-        # Add member first
         await client.post(
-            "/api/v1/orgs/members",
+            f"/api/v1/mng/orgs/{org_id}/members",
             json={
                 "access_token": user_token,
-                "org_id": org_id,
                 "user_id": second_user_id,
                 "role": "member",
             },
@@ -273,22 +238,18 @@ class TestOrgRateLimit:
 
         for i in range(CHANGE_ROLE_LIMIT):
             response = await client.put(
-                "/api/v1/orgs/members/role",
+                f"/api/v1/mng/orgs/{org_id}/members/{second_user_id}/role",
                 json={
                     "access_token": user_token,
-                    "org_id": org_id,
-                    "user_id": second_user_id,
                     "new_role": "admin" if i % 2 == 0 else "member",
                 },
             )
             assert response.status_code == 200
 
         response = await client.put(
-            "/api/v1/orgs/members/role",
+            f"/api/v1/mng/orgs/{org_id}/members/{second_user_id}/role",
             json={
                 "access_token": user_token,
-                "org_id": org_id,
-                "user_id": second_user_id,
                 "new_role": "viewer",
             },
         )
@@ -296,47 +257,36 @@ class TestOrgRateLimit:
 
     async def test_rate_limiting_get_user_orgs(self, client, user_token):
         for i in range(GET_USER_ORGS_LIMIT):
-            response = await client.post(
-                "/api/v1/users/orgs",
-                json={
-                    "access_token": user_token,
-                },
+            response = await client.get(
+                "/api/v1/mng/users/orgs",
+                headers={"Authorization": f"Bearer {user_token}"},
             )
             assert response.status_code == 200
 
-        response = await client.post(
-            "/api/v1/users/orgs",
-            json={
-                "access_token": user_token,
-            },
+        response = await client.get(
+            "/api/v1/mng/users/orgs",
+            headers={"Authorization": f"Bearer {user_token}"},
         )
         assert response.status_code == 429
 
     async def test_rate_limiting_get_org_members(self, client, user_token, org_id):
         for i in range(GET_ORG_MEMBERS_LIMIT):
-            response = await client.post(
-                "/api/v1/orgs/members/list",
-                json={
-                    "access_token": user_token,
-                    "org_id": org_id,
-                },
+            response = await client.get(
+                f"/api/v1/mng/orgs/{org_id}/members",
+                headers={"Authorization": f"Bearer {user_token}"},
             )
             assert response.status_code == 200
 
-        response = await client.post(
-            "/api/v1/orgs/members/list",
-            json={
-                "access_token": user_token,
-                "org_id": org_id,
-            },
+        response = await client.get(
+            f"/api/v1/mng/orgs/{org_id}/members",
+            headers={"Authorization": f"Bearer {user_token}"},
         )
         assert response.status_code == 429
 
     async def test_rate_limit_headers_are_returned(self, client, user_token):
-        # Exhaust the limit for create_org
         for i in range(CREATE_ORG_LIMIT):
             response = await client.post(
-                "/api/v1/orgs",
+                "/api/v1/mng/orgs",
                 json={
                     "access_token": user_token,
                     "name": f"HeaderTest_{i}",
@@ -345,7 +295,7 @@ class TestOrgRateLimit:
             assert response.status_code == 201
 
         response = await client.post(
-            "/api/v1/orgs",
+            "/api/v1/mng/orgs",
             json={
                 "access_token": user_token,
                 "name": "HeaderLimited",

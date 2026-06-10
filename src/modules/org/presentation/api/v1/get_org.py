@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from pydantic import BaseModel
 from src.modules.org.application.get_org import GetOrgService
 from src.modules.org.presentation.api.v1.dependencies import get_get_org_service
@@ -19,29 +19,31 @@ router = APIRouter()
 RATE_LIMIT_MAX_REQUESTS = 30
 
 
-class GetOrgRequest(BaseModel):
-    access_token: str
-    org_id: str
-
-
 class GetOrgResponse(BaseModel):
     org_id: str
     name: str
     created_at: str
 
 
-@router.post("/orgs/get", response_model=GetOrgResponse)
+@router.get("/orgs/{org_id}", response_model=GetOrgResponse)
 @rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="get_org")
 async def get_org(
     request: Request,
-    org_data: GetOrgRequest,
+    org_id: str,
+    authorization: str = Header(..., alias="Authorization"),
     service: GetOrgService = Depends(get_get_org_service),
 ):
     logger.info("GetOrg endpoint started")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid token format")
+
+    access_token = authorization.split(" ")[1]
+
     try:
         org = await service.execute(
-            access_token=org_data.access_token,
-            org_id=org_data.org_id,
+            access_token=access_token,
+            org_id=org_id,
         )
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")

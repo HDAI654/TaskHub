@@ -30,7 +30,7 @@ from src.modules.org.presentation.api.v1.get_org_projects import (
     router as get_org_projects_router,
 )
 
-router = APIRouter(prefix="/api/v1", tags=["Organizations"])
+router = APIRouter(prefix="/api/v1/mng", tags=["Organizations"])
 
 router.include_router(create_org_router)
 router.include_router(get_org_router)
@@ -41,8 +41,6 @@ router.include_router(remove_member_router)
 router.include_router(change_user_role_router)
 router.include_router(get_user_orgs_router)
 router.include_router(get_org_members_router)
-
-# Add these lines after the existing include_router calls
 router.include_router(create_project_router)
 router.include_router(update_project_router)
 router.include_router(delete_project_router)

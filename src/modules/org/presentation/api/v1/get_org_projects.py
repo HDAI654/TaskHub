@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from pydantic import BaseModel
 from typing import List
 from src.modules.org.application.get_org_projects import GetOrgProjectsService
@@ -15,18 +15,12 @@ from src.modules.core.exceptions import (
     CacheError,
 )
 from src.modules.core.rate_limiter import rate_limit
-from src.modules.org.domain.entities.project import PrjEntity
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 RATE_LIMIT_MAX_REQUESTS = 30
-
-
-class GetOrgProjectsRequest(BaseModel):
-    access_token: str
-    org_id: str
 
 
 class ProjectInfo(BaseModel):
@@ -40,20 +34,27 @@ class GetOrgProjectsResponse(BaseModel):
     projects: List[ProjectInfo]
 
 
-@router.post("/orgs/projects", response_model=GetOrgProjectsResponse)
+@router.get("/orgs/{org_id}/projects", response_model=GetOrgProjectsResponse)
 @rate_limit(
     max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="get_org_projects"
 )
 async def get_org_projects(
     request: Request,
-    projects_data: GetOrgProjectsRequest,
+    org_id: str,
+    authorization: str = Header(..., alias="Authorization"),
     service: GetOrgProjectsService = Depends(get_get_org_projects_service),
 ):
     logger.info("GetOrgProjects endpoint started")
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid token format")
+
+    access_token = authorization.split(" ")[1]
+
     try:
         projects = await service.execute(
-            access_token=projects_data.access_token,
-            org_id=projects_data.org_id,
+            access_token=access_token,
+            org_id=org_id,
         )
     except (InvalidToken, UserNotFoundError):
         raise HTTPException(status_code=401, detail="Invalid or expired token")

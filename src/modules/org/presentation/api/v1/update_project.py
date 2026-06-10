@@ -24,7 +24,6 @@ RATE_LIMIT_MAX_REQUESTS = 20
 
 class UpdateProjectRequest(BaseModel):
     access_token: str
-    project_id: str
     new_name: Optional[str] = None
     new_description: Optional[str] = None
 
@@ -33,12 +32,13 @@ class UpdateProjectResponse(BaseModel):
     message: str
 
 
-@router.put("/projects", response_model=UpdateProjectResponse)
+@router.put("/projects/{project_id}", response_model=UpdateProjectResponse)
 @rate_limit(
     max_requests=RATE_LIMIT_MAX_REQUESTS, window="min", key_prefix="update_project"
 )
 async def update_project(
     request: Request,
+    project_id: str,
     project_data: UpdateProjectRequest,
     service: UpdateProjectService = Depends(get_update_project_service),
 ):
@@ -46,7 +46,7 @@ async def update_project(
     try:
         await service.execute(
             access_token=project_data.access_token,
-            project_id=project_data.project_id,
+            project_id=project_id,
             new_name=project_data.new_name,
             new_description=project_data.new_description,
         )
