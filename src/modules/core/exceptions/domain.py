@@ -29,6 +29,10 @@ class InvalidRoleError(DomainError):
     pass
 
 
+class InvalidDescriptionError(DomainError):
+    pass
+
+
 # ===== Password Checker Exceptions =====
 class WeakPasswordError(DomainError):
     """Raised when password doesn't meet strength requirements"""

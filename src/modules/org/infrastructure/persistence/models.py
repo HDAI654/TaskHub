@@ -7,6 +7,7 @@ from sqlalchemy import (
     ForeignKey,
     Enum,
     UniqueConstraint,
+    Text,
 )
 from src.modules.core.database import Base
 
@@ -51,3 +52,22 @@ class OrgMemberModel(Base):
 
     def __repr__(self):
         return f"<OrgMember(user_id={self.user_id}, org_id={self.organization_id}, role='{self.role}')>"
+
+
+class ProjectModel(Base):
+    __tablename__ = "projects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        String, ForeignKey("organizations.public_id"), nullable=False, index=True
+    )
+    name = Column(String(50), nullable=False, index=True)
+    description = Column(Text, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )

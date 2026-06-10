@@ -1,7 +1,7 @@
 from src.modules.org.domain.factories.organization_factory import OrgFactory
 
 
-class TestUserFactory:
+class TestOrgFactory:
     def test_create_success(self):
         org = OrgFactory.create(
             id="MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
