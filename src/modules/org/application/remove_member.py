@@ -77,6 +77,9 @@ class RemoveMemberService:
         try:
             await self.uow.orgs.remove_member(org_id_vo, ID(user_to_remove_id))
             await self.uow.commit()
+        except InvalidIDError as e:
+            logger.debug("Member has invalid ID: %s", str(e))
+            raise MemberNotFoundError()
         except MemberNotFoundError as e:
             logger.debug("Member not found: %s", str(e))
             raise

@@ -80,7 +80,7 @@ class AddMemberService:
         # Check current user exists
         try:
             user_to_add = await self.uow.users.get_by_id(ID(user_to_add_id))
-        except UserNotFoundError:
+        except (UserNotFoundError, InvalidIDError):
             logger.warning("User not found: user_id=%s", payload["sub"])
             raise MemberNotFoundError
 
