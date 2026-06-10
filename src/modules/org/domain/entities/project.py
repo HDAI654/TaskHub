@@ -9,11 +9,13 @@ class PrjEntity(Entity):
     def __init__(
         self,
         id: ID,
+        org_id: ID,
         name: Name,
         description: Description,
         created_at: DateTime,
     ):
         self.id = id
+        self.org_id = org_id
         self.name = name
         self.description = description
         self.created_at = created_at

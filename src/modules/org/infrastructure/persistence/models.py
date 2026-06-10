@@ -58,6 +58,7 @@ class ProjectModel(Base):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, index=True)
+    public_id = Column(String(36), unique=True, nullable=False, index=True)
     organization_id = Column(
         String, ForeignKey("organizations.public_id"), nullable=False, index=True
     )

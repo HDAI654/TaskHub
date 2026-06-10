@@ -79,6 +79,13 @@ class MemberDuplicateError(OrgException):
     pass
 
 
+# Project Exceptions
+class ProjectNotFoundError(InfrastructureError):
+    """Project not found in database"""
+
+    pass
+
+
 # ===== Cache Exceptions =====
 class CacheError(Exception):
     """Base exception for all cache infrastructure failures"""

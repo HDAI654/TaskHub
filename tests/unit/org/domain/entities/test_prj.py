@@ -9,18 +9,21 @@ class TestPrjEntity:
     def test_eq_id(self):
         prj = PrjEntity(
             id=ID("MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"),
+            org_id=ID("MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"),
             name=Name("Name"),
             description=Description("ExampleDescription"),
             created_at=DateTime(),
         )
         prj2 = PrjEntity(
             id=ID("MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"),
+            org_id=ID("MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"),
             name=Name("DifferentName"),
             description=Description("ExampleDescription"),
             created_at=DateTime(),
         )
         prj3 = PrjEntity(
             id=ID("MyDifferentIDDDDDDDDDDDDDDDDDDDDDDDD"),
+            org_id=ID("MyDifferentIDDDDDDDDDDDDDDDDDDDDDDDD"),
             name=Name("Name"),
             description=Description("ExampleDescription"),
             created_at=DateTime(),

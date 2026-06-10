@@ -10,6 +10,7 @@ class PrjFactory:
     def create(
         *,
         name: str,
+        org_id: str,
         description: str,
         created_at: float | int | None = None,
         id: str | None = None,
@@ -20,6 +21,7 @@ class PrjFactory:
 
         return PrjEntity(
             id=ID(id),
+            org_id=ID(org_id),
             name=Name(name),
             description=Description(description),
             created_at=DateTime(created_at),

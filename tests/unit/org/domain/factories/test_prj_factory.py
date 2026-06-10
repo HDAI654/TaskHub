@@ -5,10 +5,12 @@ class TestPrjFactory:
     def test_create_success(self):
         prj = PrjFactory.create(
             id="MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+            org_id="MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
             name="OrgName",
             description="ExampleDescription",
         )
 
         assert prj.id.value == "MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+        assert prj.org_id.value == "MyIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
         assert prj.name.value == "OrgName"
         assert prj.description.value == "ExampleDescription"
