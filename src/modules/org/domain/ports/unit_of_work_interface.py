@@ -11,6 +11,9 @@ from src.modules.org.domain.ports.project_repo_interface import (
 from src.modules.org.domain.ports.board_repo_interface import (
     IBoardRepository,
 )
+from src.modules.org.domain.ports.column_repo_interface import (
+    IColumnRepository,
+)
 
 
 class IUnitOfWork(ABC):
@@ -18,6 +21,7 @@ class IUnitOfWork(ABC):
     orgs: IOrgRepository
     projects: IProjectRepository
     boards: IBoardRepository
+    columns: IColumnRepository
 
     @abstractmethod
     async def commit(self) -> None:

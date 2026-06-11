@@ -33,6 +33,10 @@ class InvalidDescriptionError(DomainError):
     pass
 
 
+class InvalidOrderError(DomainError):
+    pass
+
+
 # ===== Password Checker Exceptions =====
 class WeakPasswordError(DomainError):
     """Raised when password doesn't meet strength requirements"""

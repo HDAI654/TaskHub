@@ -92,3 +92,23 @@ class BoardModel(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+
+
+class ColumnModel(Base):
+    __tablename__ = "columns"
+
+    id = Column(Integer, primary_key=True, index=True)
+    public_id = Column(String(36), unique=True, nullable=False, index=True)
+    board_id = Column(
+        String, ForeignKey("boards.public_id"), nullable=False, index=True
+    )
+    name = Column(String(50), nullable=False, index=True)
+    order = Column(Integer, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )

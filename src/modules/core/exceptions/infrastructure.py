@@ -93,6 +93,13 @@ class BoardNotFoundError(Exception):
     pass
 
 
+# Column Exceptions
+class ColumnNotFoundError(Exception):
+    """Column not found in database"""
+
+    pass
+
+
 # ===== Cache Exceptions =====
 class CacheError(Exception):
     """Base exception for all cache infrastructure failures"""
