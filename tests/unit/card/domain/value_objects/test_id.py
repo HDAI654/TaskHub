@@ -1,4 +1,4 @@
-from src.modules.org.domain.value_objects.id import ID
+from src.modules.card.domain.value_objects.id import ID
 
 
 class TestID:

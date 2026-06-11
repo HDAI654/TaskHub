@@ -37,6 +37,18 @@ class InvalidOrderError(DomainError):
     pass
 
 
+class InvalidTitleError(DomainError):
+    pass
+
+
+class InvalidPriorityError(DomainError):
+    pass
+
+
+class InvalidIsCheckedError(DomainError):
+    pass
+
+
 # ===== Password Checker Exceptions =====
 class WeakPasswordError(DomainError):
     """Raised when password doesn't meet strength requirements"""

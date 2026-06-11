@@ -8,6 +8,7 @@ from sqlalchemy import (
     Enum,
     UniqueConstraint,
     Text,
+    Boolean,
 )
 from src.modules.core.database import Base
 
@@ -35,9 +36,17 @@ class OrgMemberModel(Base):
     __tablename__ = "org_members"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.public_id"), nullable=False, index=True)
+    user_id = Column(
+        String,
+        ForeignKey("users.public_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     organization_id = Column(
-        String, ForeignKey("organizations.public_id"), nullable=False, index=True
+        String,
+        ForeignKey("organizations.public_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     role = Column(
         Enum("owner", "admin", "member", "viewer", name="role_enum"), nullable=False
@@ -60,7 +69,10 @@ class ProjectModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     public_id = Column(String(36), unique=True, nullable=False, index=True)
     organization_id = Column(
-        String, ForeignKey("organizations.public_id"), nullable=False, index=True
+        String,
+        ForeignKey("organizations.public_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     name = Column(String(50), nullable=False, index=True)
     description = Column(Text, nullable=False)
@@ -80,7 +92,10 @@ class BoardModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     public_id = Column(String(36), unique=True, nullable=False, index=True)
     project_id = Column(
-        String, ForeignKey("projects.public_id"), nullable=False, index=True
+        String,
+        ForeignKey("projects.public_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     name = Column(String(50), nullable=False, index=True)
     description = Column(Text, nullable=False)
@@ -100,7 +115,10 @@ class ColumnModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     public_id = Column(String(36), unique=True, nullable=False, index=True)
     board_id = Column(
-        String, ForeignKey("boards.public_id"), nullable=False, index=True
+        String,
+        ForeignKey("boards.public_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     name = Column(String(50), nullable=False, index=True)
     order = Column(Integer, nullable=False)

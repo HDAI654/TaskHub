@@ -100,6 +100,25 @@ class ColumnNotFoundError(Exception):
     pass
 
 
+# Card Exceptions
+class CardNotFoundError(Exception):
+    """Card not found in database"""
+
+    pass
+
+
+class LabelNotFoundError(Exception):
+    """Label not found in database"""
+
+    pass
+
+
+class CheckListNotFoundError(Exception):
+    """Checklist not found in database"""
+
+    pass
+
+
 # ===== Cache Exceptions =====
 class CacheError(Exception):
     """Base exception for all cache infrastructure failures"""
