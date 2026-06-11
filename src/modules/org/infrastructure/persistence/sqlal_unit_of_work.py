@@ -12,6 +12,9 @@ from src.modules.org.infrastructure.persistence.sqlal_org_repo import (
 from src.modules.org.infrastructure.persistence.sqlal_project_repo import (
     SQLAL_ProjectRepository,
 )
+from src.modules.org.infrastructure.persistence.sqlal_board_repo import (
+    SQLAL_BoardRepository,
+)
 from sqlalchemy.exc import (
     OperationalError,
     TimeoutError,
@@ -34,6 +37,7 @@ class SQLAL_UnitOfWork(IUnitOfWork):
         self.users = SQLAL_UserRepository(session)
         self.orgs = SQLAL_OrgRepository(session)
         self.projects = SQLAL_ProjectRepository(session)
+        self.boards = SQLAL_BoardRepository(session)
 
     async def commit(self) -> None:
         logger.info("Committing transaction")
