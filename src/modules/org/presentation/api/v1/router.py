@@ -16,6 +16,7 @@ from src.modules.org.presentation.api.v1.get_user_orgs import (
 from src.modules.org.presentation.api.v1.get_org_members import (
     router as get_org_members_router,
 )
+
 from src.modules.org.presentation.api.v1.create_project import (
     router as create_project_router,
 )
@@ -30,6 +31,20 @@ from src.modules.org.presentation.api.v1.get_org_projects import (
     router as get_org_projects_router,
 )
 
+from src.modules.org.presentation.api.v1.create_board import (
+    router as create_board_router,
+)
+from src.modules.org.presentation.api.v1.update_board import (
+    router as update_board_router,
+)
+from src.modules.org.presentation.api.v1.delete_board import (
+    router as delete_board_router,
+)
+from src.modules.org.presentation.api.v1.get_board import router as get_board_router
+from src.modules.org.presentation.api.v1.get_project_boards import (
+    router as get_project_boards_router,
+)
+
 router = APIRouter(prefix="/api/v1/mng", tags=["Organizations"])
 
 router.include_router(create_org_router)
@@ -41,8 +56,15 @@ router.include_router(remove_member_router)
 router.include_router(change_user_role_router)
 router.include_router(get_user_orgs_router)
 router.include_router(get_org_members_router)
+
 router.include_router(create_project_router)
 router.include_router(update_project_router)
 router.include_router(delete_project_router)
 router.include_router(get_project_router)
 router.include_router(get_org_projects_router)
+
+router.include_router(create_board_router)
+router.include_router(update_board_router)
+router.include_router(delete_board_router)
+router.include_router(get_board_router)
+router.include_router(get_project_boards_router)

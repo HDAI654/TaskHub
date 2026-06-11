@@ -24,6 +24,12 @@ from src.modules.org.application.delete_project import DeleteProjectService
 from src.modules.org.application.get_project import GetProjectService
 from src.modules.org.application.get_org_projects import GetOrgProjectsService
 
+from src.modules.org.application.create_board import CreateBoardService
+from src.modules.org.application.update_board import UpdateBoardService
+from src.modules.org.application.delete_board import DeleteBoardService
+from src.modules.org.application.get_board import GetBoardService
+from src.modules.org.application.get_project_boards import GetProjectBoardsService
+
 
 async def get_uow(db: AsyncSession = Depends(get_async_session)) -> SQLAL_UnitOfWork:
     return SQLAL_UnitOfWork(db)
@@ -151,3 +157,44 @@ async def get_get_org_projects_service(
     jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
 ) -> GetOrgProjectsService:
     return GetOrgProjectsService(uow, token_repo, jwt_decoder)
+
+
+# ===== board =====
+async def get_create_board_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> CreateBoardService:
+    return CreateBoardService(uow, token_repo, jwt_decoder)
+
+
+async def get_update_board_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> UpdateBoardService:
+    return UpdateBoardService(uow, token_repo, jwt_decoder)
+
+
+async def get_delete_board_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> DeleteBoardService:
+    return DeleteBoardService(uow, token_repo, jwt_decoder)
+
+
+async def get_get_board_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> GetBoardService:
+    return GetBoardService(uow, token_repo, jwt_decoder)
+
+
+async def get_get_project_boards_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> GetProjectBoardsService:
+    return GetProjectBoardsService(uow, token_repo, jwt_decoder)
