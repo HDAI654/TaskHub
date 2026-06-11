@@ -30,6 +30,12 @@ from src.modules.org.application.delete_board import DeleteBoardService
 from src.modules.org.application.get_board import GetBoardService
 from src.modules.org.application.get_project_boards import GetProjectBoardsService
 
+from src.modules.org.application.create_column import CreateColumnService
+from src.modules.org.application.update_column import UpdateColumnService
+from src.modules.org.application.delete_column import DeleteColumnService
+from src.modules.org.application.get_column import GetColumnService
+from src.modules.org.application.get_board_columns import GetBoardColumnsService
+
 
 async def get_uow(db: AsyncSession = Depends(get_async_session)) -> SQLAL_UnitOfWork:
     return SQLAL_UnitOfWork(db)
@@ -198,3 +204,44 @@ async def get_get_project_boards_service(
     jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
 ) -> GetProjectBoardsService:
     return GetProjectBoardsService(uow, token_repo, jwt_decoder)
+
+
+# ===== column =====
+async def get_create_column_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> CreateColumnService:
+    return CreateColumnService(uow, token_repo, jwt_decoder)
+
+
+async def get_update_column_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> UpdateColumnService:
+    return UpdateColumnService(uow, token_repo, jwt_decoder)
+
+
+async def get_delete_column_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> DeleteColumnService:
+    return DeleteColumnService(uow, token_repo, jwt_decoder)
+
+
+async def get_get_column_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> GetColumnService:
+    return GetColumnService(uow, token_repo, jwt_decoder)
+
+
+async def get_get_board_columns_service(
+    uow: SQLAL_UnitOfWork = Depends(get_uow),
+    token_repo: RedisTokenRepository = Depends(get_token_repo),
+    jwt_decoder: JWTDecoder = Depends(get_jwt_decoder),
+) -> GetBoardColumnsService:
+    return GetBoardColumnsService(uow, token_repo, jwt_decoder)

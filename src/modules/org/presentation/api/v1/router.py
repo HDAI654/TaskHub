@@ -45,6 +45,20 @@ from src.modules.org.presentation.api.v1.get_project_boards import (
     router as get_project_boards_router,
 )
 
+from src.modules.org.presentation.api.v1.create_column import (
+    router as create_column_router,
+)
+from src.modules.org.presentation.api.v1.update_column import (
+    router as update_column_router,
+)
+from src.modules.org.presentation.api.v1.delete_column import (
+    router as delete_column_router,
+)
+from src.modules.org.presentation.api.v1.get_column import router as get_column_router
+from src.modules.org.presentation.api.v1.get_board_columns import (
+    router as get_board_columns_router,
+)
+
 router = APIRouter(prefix="/api/v1/mng", tags=["Organizations"])
 
 router.include_router(create_org_router)
@@ -68,3 +82,9 @@ router.include_router(update_board_router)
 router.include_router(delete_board_router)
 router.include_router(get_board_router)
 router.include_router(get_project_boards_router)
+
+router.include_router(create_column_router)
+router.include_router(update_column_router)
+router.include_router(delete_column_router)
+router.include_router(get_column_router)
+router.include_router(get_board_columns_router)
