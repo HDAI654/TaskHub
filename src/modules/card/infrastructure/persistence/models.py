@@ -69,7 +69,7 @@ class LabelsModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     public_id = Column(String(36), unique=True, nullable=False, index=True)
-    name = Column(String(50), nullable=False, index=True)
+    name = Column(String(50), nullable=False, index=True, unique=True)
 
 
 class CardLabels(Base):
