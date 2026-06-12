@@ -13,7 +13,12 @@ from src.modules.org.domain.entities.column import ColumnEntity
 from src.modules.org.domain.value_objects.id import ID
 from src.modules.org.domain.value_objects.name import Name
 from src.modules.org.domain.value_objects.order import Order
-from src.modules.org.infrastructure.persistence.models import ColumnModel
+from src.modules.org.infrastructure.persistence.models import (
+    ColumnModel,
+    BoardModel,
+    ProjectModel,
+    OrgModel,
+)
 from src.modules.org.domain.factories.column_factory import ColumnFactory
 from src.modules.core.exceptions import (
     ColumnNotFoundError,
@@ -147,6 +152,28 @@ class SQLAL_ColumnRepository(IColumnRepository):
             "Found %d columns for board: board_id=%s", len(columns), board_id.value
         )
         return columns
+
+    async def get_org_id(self, column_id: ID) -> ID:
+        logger.info("Getting org_id for column: column_id=%s", column_id.value)
+
+        stmt = (
+            select(OrgModel.public_id)
+            .select_from(ColumnModel)
+            .join(BoardModel, ColumnModel.board_id == BoardModel.public_id)
+            .join(ProjectModel, BoardModel.project_id == ProjectModel.public_id)
+            .join(OrgModel, ProjectModel.organization_id == OrgModel.public_id)
+            .where(ColumnModel.public_id == column_id.value)
+        )
+        result = await self._execute_db_operation(
+            "get_org_id", self._session.execute, stmt
+        )
+        org_id = result.scalar_one_or_none()
+
+        if org_id is None:
+            logger.debug("Column not found: public_id=%s", column_id.value)
+            raise ColumnNotFoundError(f"Column with id {column_id.value!r} not found")
+
+        return ID(org_id)
 
     def _to_entity(self, column_model: ColumnModel) -> ColumnEntity:
         return ColumnFactory.create(

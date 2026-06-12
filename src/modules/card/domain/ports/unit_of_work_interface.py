@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 from src.modules.auth.domain.ports.user_repo_interface import (
     IUserRepository,
 )
+from src.modules.org.domain.ports.org_repo_interface import (
+    IOrgRepository,
+)
 from src.modules.org.domain.ports.column_repo_interface import (
     IColumnRepository,
 )
@@ -12,6 +15,7 @@ from src.modules.card.domain.ports.card_repo_interface import (
 
 class IUnitOfWork(ABC):
     users: IUserRepository
+    orgs: IOrgRepository
     columns: IColumnRepository
     cards: ICardRepository
 

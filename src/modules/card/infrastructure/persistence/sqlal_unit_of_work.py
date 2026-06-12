@@ -6,6 +6,9 @@ from src.modules.org.domain.ports.unit_of_work_interface import (
 from src.modules.auth.infrastructure.persistence.sqlal_user_repo import (
     SQLAL_UserRepository,
 )
+from src.modules.org.infrastructure.persistence.sqlal_org_repo import (
+    SQLAL_OrgRepository,
+)
 from src.modules.org.infrastructure.persistence.sqlal_column_repo import (
     SQLAL_ColumnRepository,
 )
@@ -32,6 +35,7 @@ class SQLAL_UnitOfWork(IUnitOfWork):
         self._session = session
 
         self.users = SQLAL_UserRepository(session)
+        self.orgs = SQLAL_OrgRepository(session)
         self.columns = SQLAL_ColumnRepository(session)
         self.cards = SQLAL_CardRepository(session)
 

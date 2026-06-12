@@ -38,3 +38,8 @@ class IColumnRepository(ABC):
     async def get_by_board_id(self, board_id: ID) -> List[ColumnEntity]:
         """Get all columns belonging to a board, ordered by 'order' field."""
         pass
+
+    @abstractmethod
+    async def get_org_id(self, column_id: ID) -> ID:
+        """Find the organization id of a column"""
+        pass

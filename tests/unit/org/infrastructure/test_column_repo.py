@@ -201,3 +201,11 @@ class TestColumnRepo:
     ):
         with pytest.raises(ColumnNotFoundError):
             await repo.delete(non_existent_column_id)
+
+    async def test_get_org_id_successfully(self, repo, column_seed, org_seed):
+        org_id = await repo.get_org_id(ID(column_seed.public_id))
+        assert org_id.value == org_seed.public_id
+
+    async def test_get_org_id_column_not_found(self, repo, non_existent_column_id):
+        with pytest.raises(ColumnNotFoundError):
+            await repo.get_org_id(non_existent_column_id)
