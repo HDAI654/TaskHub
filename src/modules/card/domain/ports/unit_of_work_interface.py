@@ -5,6 +5,12 @@ from src.modules.auth.domain.ports.user_repo_interface import (
 from src.modules.org.domain.ports.org_repo_interface import (
     IOrgRepository,
 )
+from src.modules.org.domain.ports.project_repo_interface import (
+    IProjectRepository,
+)
+from src.modules.org.domain.ports.board_repo_interface import (
+    IBoardRepository,
+)
 from src.modules.org.domain.ports.column_repo_interface import (
     IColumnRepository,
 )
@@ -16,6 +22,8 @@ from src.modules.card.domain.ports.card_repo_interface import (
 class IUnitOfWork(ABC):
     users: IUserRepository
     orgs: IOrgRepository
+    projects: IProjectRepository
+    boards: IBoardRepository
     columns: IColumnRepository
     cards: ICardRepository
 

@@ -17,6 +17,7 @@ build/
 *.pot
 *.py[cod]
 *.sqlite3
+*.db
 db.sqlite3
 media/
 logs/
